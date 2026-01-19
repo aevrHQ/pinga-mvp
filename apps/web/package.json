@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@untools/logger": "^0.0.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jsonwebtoken": "^9.0.3",

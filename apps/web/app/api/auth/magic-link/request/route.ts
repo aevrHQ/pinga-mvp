@@ -4,6 +4,7 @@ import MagicLinkToken from "@/models/MagicLinkToken";
 import { sendMagicLink } from "@/lib/email";
 import crypto from "crypto";
 import { z } from "zod";
+import { logger } from "@untools/logger";
 
 const requestSchema = z.object({
   email: z.string().email(),
@@ -16,7 +17,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const result = requestSchema.safeParse(body);
 
+    logger?.info("Magic link request", body);
+
     if (!result.success) {
+      logger?.error("Invalid magic link request", result);
       return NextResponse.json(
         { error: "Invalid email address" },
         { status: 400 },
