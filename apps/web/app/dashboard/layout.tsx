@@ -53,7 +53,7 @@ export default async function DashboardLayout({
             >
               <button
                 type="submit"
-                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+                className="text-sm cursor-pointer font-medium text-red-600 hover:text-red-700 transition-colors"
               >
                 Sign out
               </button>
