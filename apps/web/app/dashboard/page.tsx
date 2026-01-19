@@ -102,6 +102,32 @@ export default async function DashboardPage(props: DashboardPageProps) {
         </div>
       )}
 
+      {installationId && !successMessage && (
+        <div className="bg-yellow-50 text-yellow-700 p-4 rounded-lg flex items-start gap-2 border border-yellow-100">
+          <Activity className="w-5 h-5 mt-0.5" />
+          <div>
+            <p className="font-semibold">Connection Pending...</p>
+            <p className="text-sm mt-1">
+              We received the redirect from GitHub (ID:{" "}
+              {Array.isArray(installationId)
+                ? installationId[0]
+                : installationId}
+              ), but we haven&apos;t received the configuration data yet.
+            </p>
+            <p className="text-sm mt-2">
+              <strong>Troubleshooting:</strong>
+              <br />
+              1. Ensure your GitHub App <strong>Webhook URL</strong> is set to{" "}
+              <code>https://&lt;your-ngrok-url&gt;/api/webhook/github</code>.
+              <br />
+              2. Ensure <strong>Content type</strong> is{" "}
+              <code>application/json</code>.<br />
+              3. Check your terminal to see if the webhook was received.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Stats / Installations */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
