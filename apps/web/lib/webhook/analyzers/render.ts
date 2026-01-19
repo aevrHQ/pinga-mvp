@@ -3,11 +3,14 @@ import type { WebhookAnalyzer, AnalyzerResult } from "../analyzers";
 interface RenderPayload {
   type?: string;
   timestamp?: string;
+  source?: string;
+  subject?: string;
   data?: {
     id?: string;
     serviceId?: string;
     serviceName?: string;
-    status?: "succeeded" | "failed" | "canceled";
+    status?: "succeeded" | "failed" | "canceled" | "pending" | string;
+    url?: string;
   };
 }
 
@@ -43,6 +46,10 @@ export const renderAnalyzer: WebhookAnalyzer = {
   canHandle(payload: unknown, headers: Record<string, string>): boolean {
     const p = payload as RenderPayload;
     if (headers["webhook-id"]?.startsWith("evt-")) return true;
+
+    // Check for email forwarded payload
+    if (p?.source === "render-email") return true;
+
     return (
       typeof p?.type === "string" &&
       typeof p?.data?.serviceId === "string" &&
@@ -54,6 +61,12 @@ export const renderAnalyzer: WebhookAnalyzer = {
 
   analyze(payload: unknown): AnalyzerResult {
     const p = payload as RenderPayload;
+
+    // Handle email payloads
+    if (p.source === "render-email") {
+      return analyzeEmailPayload(p);
+    }
+
     const type = p.type || "unknown";
     const data = p.data || {};
 
@@ -88,6 +101,36 @@ export const renderAnalyzer: WebhookAnalyzer = {
     return { source: "render", notification: { title, emoji, fields, links } };
   },
 };
+
+function analyzeEmailPayload(p: RenderPayload): AnalyzerResult {
+  const data = p.data || {};
+  const status = data.status || "unknown";
+
+  let emoji = "📡";
+  const title = p.subject || "Render Notification";
+
+  if (status === "succeeded") emoji = "✅";
+  else if (status === "failed") emoji = "❌";
+  else if (status === "pending") emoji = "🔄";
+
+  const fields: { label: string; value: string }[] = [];
+  const links: { label: string; url: string }[] = [];
+
+  if (data.serviceName) {
+    fields.push({ label: "📦 Service", value: data.serviceName });
+  }
+
+  fields.push({ label: "📊 Status", value: status.toUpperCase() });
+
+  if (data.url) {
+    links.push({ label: "Dashboard", url: data.url });
+  }
+
+  return {
+    source: "render-email",
+    notification: { title, emoji, fields, links },
+  };
+}
 
 function formatEventType(type: string): string {
   return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

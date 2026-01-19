@@ -11,6 +11,9 @@ export interface TelegramNotification {
   fields: { label: string; value: string }[];
   links: { label: string; url: string }[];
   payloadUrl: string;
+  // SaaS overrides
+  chatId?: string;
+  botToken?: string;
 }
 
 /**
@@ -25,23 +28,38 @@ function escapeMarkdownV2(text: string): string {
  */
 export async function sendMessage(
   text: string,
-  options: SendMessageOptions = {}
+  options: SendMessageOptions = {},
+  chatIdOverride?: string,
+  botTokenOverride?: string,
 ): Promise<boolean> {
   const { parseMode = "MarkdownV2", disableWebPagePreview = true } = options;
 
-  const url = `https://api.telegram.org/bot${config.telegram.botToken}/sendMessage`;
+  const botToken = botTokenOverride || config.telegram.botToken;
+  const chatId = chatIdOverride || config.telegram.chatId;
+
+  if (!botToken || !chatId) {
+    console.warn("Telegram credentials missing (botToken or chatId)");
+    return false;
+  }
+
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
   try {
+    // Add a timeout signal
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        chat_id: config.telegram.chatId,
+        chat_id: chatId,
         text,
         parse_mode: parseMode,
         disable_web_page_preview: disableWebPagePreview,
       }),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       const error = await response.text();
@@ -50,8 +68,12 @@ export async function sendMessage(
     }
 
     return true;
-  } catch (error) {
-    console.error("Failed to send Telegram message:", error);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Failed to send Telegram message:", err.message);
+    if (err.cause) {
+      console.error("Cause:", err.cause);
+    }
     return false;
   }
 }
@@ -60,7 +82,7 @@ export async function sendMessage(
  * Format and send a structured notification
  */
 export async function sendNotification(
-  notification: TelegramNotification
+  notification: TelegramNotification,
 ): Promise<boolean> {
   const lines: string[] = [];
 
@@ -90,5 +112,6 @@ export async function sendNotification(
   lines.push(`📄 [View Full Payload](${notification.payloadUrl})`);
 
   const message = lines.join("\n");
-  return sendMessage(message);
+
+  return sendMessage(message, {}, notification.chatId, notification.botToken);
 }
