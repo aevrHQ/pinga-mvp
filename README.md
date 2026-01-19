@@ -1,4 +1,4 @@
-# pinga-mvp
+# pinga mvp
 
 Monorepo for Pinga - Webhook notification system for Telegram.
 
