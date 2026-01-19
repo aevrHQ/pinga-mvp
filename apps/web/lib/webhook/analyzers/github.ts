@@ -37,6 +37,25 @@ interface GitHubPayload {
     html_url?: string;
     state?: string;
   };
+  installation?: { id?: number; account?: { login?: string } };
+  installation_repositories?: {
+    repositories_added?: Array<{ full_name: string }>;
+    repositories_removed?: Array<{ full_name: string }>;
+  };
+  check_run?: {
+    status?: string;
+    conclusion?: string;
+    name?: string;
+    html_url?: string;
+    check_suite?: { head_branch?: string };
+  };
+  workflow_run?: {
+    status?: string;
+    conclusion?: string;
+    name?: string;
+    html_url?: string;
+    head_branch?: string;
+  };
 }
 
 const eventEmojis: Record<string, string> = {
@@ -48,6 +67,10 @@ const eventEmojis: Record<string, string> = {
   issues: "🐛",
   star: "⭐",
   fork: "🍴",
+  installation: "🔌",
+  installation_repositories: "🔌",
+  check_run: "✅",
+  workflow_run: "⚙️",
 };
 
 export const githubAnalyzer: WebhookAnalyzer = {
@@ -75,6 +98,11 @@ export const githubAnalyzer: WebhookAnalyzer = {
         return analyzeRelease(p, emoji);
       case "deployment_status":
         return analyzeDeployStatus(p);
+      case "installation":
+      case "installation_repositories":
+        return analyzeInstallation(p, eventType, emoji);
+      case "workflow_run":
+        return analyzeWorkflow(p, emoji);
       default:
         return analyzeGeneric(p, eventType, emoji);
     }
@@ -185,6 +213,67 @@ function analyzeGeneric(
   return {
     source: "github",
     notification: { title: formatEventType(eventType), emoji, fields, links },
+  };
+}
+
+function analyzeInstallation(
+  p: GitHubPayload,
+  type: string,
+  emoji: string
+): AnalyzerResult {
+  const fields = [];
+  const account = p.installation?.account?.login || "unknown";
+
+  fields.push({ label: "👤 Account", value: account });
+
+  if (type === "installation") {
+    const action = "action" in p ? (p as { action: string }).action : "updated";
+    fields.push({ label: "⚡ Action", value: action });
+  } else if (type === "installation_repositories") {
+    const added = p.installation_repositories?.repositories_added?.length || 0;
+    const removed =
+      p.installation_repositories?.repositories_removed?.length || 0;
+    if (added > 0)
+      fields.push({ label: "➕ Added", value: `${added} repo(s)` });
+    if (removed > 0)
+      fields.push({ label: "➖ Removed", value: `${removed} repo(s)` });
+  }
+
+  return {
+    source: "github",
+    notification: {
+      title: "GitHub App Installation",
+      emoji,
+      fields,
+      links: [],
+    },
+  };
+}
+
+function analyzeWorkflow(p: GitHubPayload, emoji: string): AnalyzerResult {
+  const w = p.workflow_run;
+  const status = w?.status || "unknown";
+  const conclusion = w?.conclusion || "pending";
+
+  if (conclusion === "success") emoji = "✅";
+  else if (conclusion === "failure") emoji = "❌";
+
+  const fields = [
+    { label: "⚙️ Workflow", value: w?.name || "unknown" },
+    {
+      label: "📊 Status",
+      value: conclusion !== "pending" ? conclusion : status,
+    },
+  ];
+
+  if (w?.head_branch) fields.push({ label: "🌿 Branch", value: w.head_branch });
+  if (p.repository?.full_name)
+    fields.push({ label: "📦 Repo", value: p.repository.full_name });
+
+  const links = w?.html_url ? [{ label: "Details", url: w.html_url }] : [];
+  return {
+    source: "github",
+    notification: { title: "Workflow Run", emoji, fields, links },
   };
 }
 
