@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
-import User from "@/models/User";
+import User, { UserDocument } from "@/models/User";
 import { sendPlainMessage } from "@/lib/webhook/telegram";
+import { ModelMessage } from "ai";
 
 // This route receives webhooks FROM Telegram
 // You need to set your telegram bot webhook to point here:
@@ -231,19 +232,80 @@ export async function POST(request: NextRequest) {
           const { generateChatResponse } =
             await import("@/lib/agents/chatAssistant");
 
-          const senderName = update.message.from?.first_name || "Friend";
-          const response = await generateChatResponse({
-            message: text,
-            senderName,
+          // Fetch user history
+          let history: ModelMessage[] = [];
+
+          await connectToDatabase();
+          // Find user by telegramChatId (legacy) OR check if any channel is linked to this chat
+          // For simplicity in MVP, we might only support history for legacy direct linked users or we need to find the user from the channel link.
+          // Since we have Channel model, let's try to find the user who owns the channel for this chat.
+
+          // Try to find user directly linked (DM)
+          let user: UserDocument | null = await User.findOne({
+            telegramChatId: chat.id.toString(),
           });
 
-          if (response) {
+          if (!user && isGroup) {
+            const { default: Channel } = await import("@/models/Channel");
+            // find a channel with this config.chatId
+            const channel = await Channel.findOne({
+              "config.chatId": chat.id.toString(),
+            });
+            if (channel) {
+              user = await User.findById(channel.userId);
+            }
+          }
+
+          if (user && user.chatHistory) {
+            // Map to Vercel AI SDK CoreMessage format
+            // The simple schema has role 'user'|'assistant' and content string.
+            // Explicitly type msg to avoid implicit any error
+            history = user.chatHistory
+              .map((msg: { role: string; content: string }) => ({
+                role: msg.role as "user" | "assistant",
+                content: msg.content,
+              }))
+              .slice(-10); // Limit context window
+          }
+
+          const senderName = update.message.from?.first_name || "Friend";
+          const result = await generateChatResponse({
+            message: text,
+            senderName,
+            history,
+          });
+
+          if (result && result.text) {
+            const responseText = result.text;
             await sendPlainMessage(
-              response,
+              responseText,
               chat.id.toString(),
               undefined,
               update.message.message_id,
             );
+
+            // Persist History
+            if (user) {
+              // We need to type 'user' properly or use updateOne to avoid TS issues if not fully typed here
+              await User.updateOne(
+                { _id: user._id },
+                {
+                  $push: {
+                    chatHistory: {
+                      $each: [
+                        { role: "user", content: text, createdAt: new Date() },
+                        {
+                          role: "assistant",
+                          content: responseText,
+                          createdAt: new Date(),
+                        },
+                      ],
+                      $slice: -50, // Keep last 50 messages only
+                    },
+                  },
+                },
+              );
+            }
           }
         } else if (isGroup) {
           console.log(

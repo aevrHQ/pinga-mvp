@@ -17,6 +17,13 @@ export interface IUser {
 
   // Auth fields
   pin?: string; // Hashed PIN for quick login
+
+  // Chat History
+  chatHistory?: {
+    role: "user" | "assistant";
+    content: string;
+    createdAt: Date;
+  }[];
 }
 
 export interface UserDocument extends IUser, Document {}
@@ -40,6 +47,14 @@ const UserSchema = new Schema<UserDocument>(
     },
 
     pin: { type: String },
+
+    chatHistory: [
+      {
+        role: { type: String, enum: ["user", "assistant"], required: true },
+        content: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

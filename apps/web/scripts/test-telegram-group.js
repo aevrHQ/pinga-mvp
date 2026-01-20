@@ -38,7 +38,7 @@ function sendMessage(text) {
           console.error(`Error Code: ${json.error_code}`);
           console.error(`Description: ${json.description}`);
         }
-      } catch (e) {
+      } catch {
         console.error("Failed to parse response JSON");
       }
     });
