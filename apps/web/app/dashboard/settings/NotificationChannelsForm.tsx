@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2, Plus, Trash2, Save } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Loader2, Plus, Trash2, CheckCircle2 } from "lucide-react";
 
 interface Channel {
   type: string;
@@ -20,8 +20,49 @@ export default function NotificationChannelsForm({
   userId,
 }: NotificationChannelsFormProps) {
   const [channels, setChannels] = useState<Channel[]>(initialChannels);
-  const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const autoSaveTimer = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Auto-save when channels change
+  useEffect(() => {
+    // Clear existing timer
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
+
+    // Don't auto-save on initial mount
+    if (JSON.stringify(channels) === JSON.stringify(initialChannels)) {
+      return;
+    }
+
+    // Set new timer for auto-save (1 second debounce)
+    autoSaveTimer.current = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        const res = await fetch("/api/user/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channels }),
+        });
+
+        if (res.ok) {
+          setMessage("✓ Auto-saved");
+          setTimeout(() => setMessage(""), 2000);
+        }
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000);
+
+    return () => {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+    };
+  }, [channels, initialChannels]);
 
   const addChannel = (type: string) => {
     const newChannel: Channel = {
@@ -48,31 +89,8 @@ export default function NotificationChannelsForm({
     setChannels(updated);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage("");
-
-    try {
-      const res = await fetch("/api/user/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channels }),
-      });
-
-      if (!res.ok) throw new Error("Failed to update");
-
-      setMessage("Channels saved successfully!");
-      setTimeout(() => setMessage(""), 3000);
-    } catch (error) {
-      setMessage("Error saving channels: " + error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       <div className="space-y-4">
         {channels.map((channel, index) => (
           <div
@@ -222,28 +240,19 @@ export default function NotificationChannelsForm({
       </div>
 
       <div className="flex items-center gap-4 pt-4 border-t">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="flex items-center gap-2 bg-black text-white px-6 py-2.5 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50"
-        >
-          {isLoading ? (
+        {isSaving && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
             <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          Save Channels
-        </button>
+            Saving...
+          </div>
+        )}
         {message && (
-          <span
-            className={
-              message.includes("Error") ? "text-red-600" : "text-green-600"
-            }
-          >
+          <div className="flex items-center gap-2 text-sm text-green-600">
+            <CheckCircle2 className="w-4 h-4" />
             {message}
-          </span>
+          </div>
         )}
       </div>
-    </form>
+    </div>
   );
 }

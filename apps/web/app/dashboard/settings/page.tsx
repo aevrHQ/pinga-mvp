@@ -13,6 +13,14 @@ export default async function SettingsPage() {
   await connectToDatabase();
   const dbUser = await User.findById(user.userId);
 
+  // Serialize to plain objects
+  const channels = dbUser?.channels
+    ? JSON.parse(JSON.stringify(dbUser.channels))
+    : [];
+  const preferences = dbUser?.preferences
+    ? JSON.parse(JSON.stringify(dbUser.preferences))
+    : { aiSummary: false, allowedSources: [] };
+
   return (
     <div className="space-y-6">
       <div>
@@ -27,10 +35,7 @@ export default async function SettingsPage() {
             Configure where you want to receive notifications
           </p>
           <NotificationChannelsForm
-            initialChannels={(dbUser?.channels || []).map((ch) => ({
-              ...ch,
-              config: ch.config as Record<string, unknown>,
-            }))}
+            initialChannels={channels}
             userId={user.userId.toString()}
           />
         </div>
@@ -40,14 +45,7 @@ export default async function SettingsPage() {
           <p className="text-sm text-gray-500 mb-4">
             Customize how you receive notifications
           </p>
-          <PreferencesForm
-            initialPreferences={
-              dbUser?.preferences || {
-                aiSummary: false,
-                allowedSources: [],
-              }
-            }
-          />
+          <PreferencesForm initialPreferences={preferences} />
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
