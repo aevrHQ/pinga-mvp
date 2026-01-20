@@ -231,7 +231,6 @@ export default async function HelpPage({ params }: HelpPageProps) {
             prose-p:text-gray-600 prose-p:leading-relaxed
             prose-a:text-black prose-a:underline hover:prose-a:text-gray-600
             prose-strong:text-black prose-strong:font-semibold
-            prose-code:text-black prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-medium prose-code:before:content-none prose-code:after:content-none
             prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl prose-pre:shadow-sm
             prose-blockquote:border-l-2 prose-blockquote:border-black prose-blockquote:bg-gray-50 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:not-italic prose-blockquote:rounded-r-lg
             prose-ul:list-disc prose-ul:pl-0 prose-ul:space-y-2
