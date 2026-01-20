@@ -227,7 +227,12 @@ export async function POST(request: NextRequest) {
           });
 
           if (response) {
-            await sendPlainMessage(response, chat.id.toString());
+            await sendPlainMessage(
+              response,
+              chat.id.toString(),
+              undefined,
+              update.message.message_id,
+            );
           }
         } else if (isGroup) {
           console.log(

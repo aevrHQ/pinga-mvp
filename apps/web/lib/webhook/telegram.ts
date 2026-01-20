@@ -3,6 +3,7 @@ import { config } from "./config";
 interface SendMessageOptions {
   parseMode?: "MarkdownV2" | "HTML";
   disableWebPagePreview?: boolean;
+  replyToMessageId?: number;
 }
 
 export interface TelegramNotification {
@@ -26,19 +27,17 @@ export function escapeMarkdownV2(text: string): string {
 /**
  * Send a plain text message to Telegram (auto-escaped)
  */
-/**
- * Send a plain text message to Telegram (auto-escaped)
- */
 import { ChannelResult } from "@/lib/notification/types";
 
 export async function sendPlainMessage(
   text: string,
   chatIdOverride?: string,
   botTokenOverride?: string,
+  replyToMessageId?: number,
 ): Promise<ChannelResult> {
   return sendMessage(
     escapeMarkdownV2(text),
-    { parseMode: "MarkdownV2" },
+    { parseMode: "MarkdownV2", replyToMessageId },
     chatIdOverride,
     botTokenOverride,
   );
@@ -53,7 +52,11 @@ export async function sendMessage(
   chatIdOverride?: string,
   botTokenOverride?: string,
 ): Promise<ChannelResult> {
-  const { parseMode = "MarkdownV2", disableWebPagePreview = true } = options;
+  const {
+    parseMode = "MarkdownV2",
+    disableWebPagePreview = true,
+    replyToMessageId,
+  } = options;
 
   const botToken = botTokenOverride || config.telegram.botToken;
   const chatId = chatIdOverride || config.telegram.chatId;
@@ -85,6 +88,7 @@ export async function sendMessage(
         text,
         parse_mode: parseMode,
         disable_web_page_preview: disableWebPagePreview,
+        reply_to_message_id: replyToMessageId,
       }),
       signal: controller.signal,
     }).finally(() => clearTimeout(timeoutId));
