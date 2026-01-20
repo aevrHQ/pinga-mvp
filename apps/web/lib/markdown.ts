@@ -1,17 +1,12 @@
-import { Marked } from "marked";
-import { markedHighlight } from "marked-highlight";
-import hljs from "highlight.js";
-
-const marked = new Marked(
-  markedHighlight({
-    langPrefix: "hljs language-",
-    highlight(code, lang) {
-      const language = hljs.getLanguage(lang) ? lang : "plaintext";
-      return hljs.highlight(code, { language }).value;
-    },
-  }),
-);
+import { marked } from "marked";
 
 export async function parseMarkdown(content: string): Promise<string> {
-  return marked.parse(content) as Promise<string>;
+  // Configure marked with safe defaults
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+  });
+
+  // Parse and return the HTML
+  return marked.parse(content);
 }
