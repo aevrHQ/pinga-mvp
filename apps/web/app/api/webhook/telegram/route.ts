@@ -58,6 +58,17 @@ export async function POST(request: NextRequest) {
 
               try {
                 const user = await User.findById(userId);
+                console.log("Channel link attempt:", {
+                  userId,
+                  channelIndex,
+                  userFound: !!user,
+                  channelsExist: !!user?.channels,
+                  channelsLength: user?.channels?.length,
+                  channelExists: !!(
+                    user?.channels && user.channels[channelIndex]
+                  ),
+                });
+
                 if (user && user.channels && user.channels[channelIndex]) {
                   // Detect if group chat
                   const isGroupChat =
@@ -92,8 +103,24 @@ export async function POST(request: NextRequest) {
                     `Linked Telegram Chat ${chat.id} to User ${userId} Channel ${channelIndex} (${isGroupChat ? "group" : "private"})`,
                   );
                 } else {
+                  // More helpful error message
+                  const errorDetails = !user
+                    ? "User not found"
+                    : !user.channels
+                      ? "No channels configured"
+                      : user.channels.length === 0
+                        ? "No channels created yet"
+                        : `Channel ${channelIndex} doesn't exist (you have ${user.channels.length} channel(s))`;
+
+                  console.error("Channel link failed:", errorDetails);
+
                   await sendPlainMessage(
-                    "❌ Could not find the channel to link. Please try again from the dashboard.",
+                    `❌ Could not find the channel to link.\n\n` +
+                      `Debug: ${errorDetails}\n\n` +
+                      `Please make sure you:\n` +
+                      `1. Created a channel in the dashboard\n` +
+                      `2. Clicked "Save Channels" first\n` +
+                      `3. Then clicked "Connect with Telegram"`,
                     chat.id.toString(),
                   );
                 }
