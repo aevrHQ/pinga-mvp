@@ -7,8 +7,8 @@ import crypto from "crypto";
 import { z } from "zod";
 
 const verifySchema = z.object({
-  email: z.string().email(),
-  otp: z.string().length(6),
+  email: z.string().trim().email(),
+  otp: z.string().trim().length(6),
 });
 
 export async function POST(request: Request) {
@@ -17,8 +17,9 @@ export async function POST(request: Request) {
     const result = verifySchema.safeParse(body);
 
     if (!result.success) {
+      console.warn("OTP Verification: Invalid input format", result.error);
       return NextResponse.json(
-        { error: "Invalid email or code" },
+        { error: "Invalid email or code format" },
         { status: 400 },
       );
     }
@@ -29,17 +30,42 @@ export async function POST(request: Request) {
 
     const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
 
+    // Masked logging
+    const maskedEmail = email.replace(/(^.{2})[^@]+(@.+)/, "$1***$2");
+    console.log(
+      `[OTP] Verifying for ${maskedEmail}. Hash: ${otpHash.substring(0, 8)}...`,
+    );
+
     // Find valid token
     const magicToken = await MagicLinkToken.findOne({
       email,
       otpHash,
-      used: false,
-      expires: { $gt: new Date() },
     });
 
     if (!magicToken) {
+      console.warn(
+        `[OTP] Failed: No token found for ${maskedEmail} with provided code.`,
+      );
+      // Security: Don't reveal if it was the code or the email that was wrong,
+      // but log it for us.
       return NextResponse.json(
         { error: "Invalid or expired code" },
+        { status: 400 },
+      );
+    }
+
+    if (magicToken.used) {
+      console.warn(`[OTP] Failed: Token already used for ${maskedEmail}.`);
+      return NextResponse.json(
+        { error: "Code already used. Please request a new one." },
+        { status: 400 },
+      );
+    }
+
+    if (new Date() > magicToken.expires) {
+      console.warn(`[OTP] Failed: Token expired for ${maskedEmail}.`);
+      return NextResponse.json(
+        { error: "Code expired. Please request a new one." },
         { status: 400 },
       );
     }
