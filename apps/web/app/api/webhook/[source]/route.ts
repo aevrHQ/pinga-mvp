@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeWebhook } from "@/lib/webhook/analyzers";
 import { storePayload, getPayloadUrl } from "@/lib/webhook/storage";
-import { sendNotification } from "@/lib/webhook/telegram";
 import { validateConfig } from "@/lib/webhook/config";
 import connectToDatabase from "@/lib/mongodb";
 import Installation from "@/models/Installation";
-import User from "@/models/User";
+import User, { UserDocument } from "@/models/User";
 import WebhookEvent from "@/models/WebhookEvent";
 
 interface RouteParams {
@@ -71,9 +70,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       // Or we just log it for now.
     }
 
-    // Determine Recipient
-    let chatId = process.env.TELEGRAM_CHAT_ID; // Default global
-    let botToken = process.env.TELEGRAM_BOT_TOKEN; // Default global
+    // Determine Recipient User
+    let targetUser: UserDocument | null = null;
 
     const installationId = payload.installation?.id;
 
@@ -83,20 +81,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }).populate("userId");
 
       if (installation && installation.userId) {
-        // We found a linked installation!
-        const user = installation.userId as unknown as {
-          email: string;
-          telegramChatId?: string;
-          telegramBotToken?: string;
-        };
-        if (user.telegramChatId) {
-          chatId = user.telegramChatId;
-        }
-        if (user.telegramBotToken) {
-          botToken = user.telegramBotToken;
-        }
+        targetUser = installation.userId as unknown as UserDocument;
         console.log(
-          `Routing webhook ${eventType} to User ${user.email} (ChatID: ${chatId})`,
+          `Routing webhook ${eventType} to User ${targetUser?.email}`,
         );
       } else {
         console.warn(
@@ -113,8 +100,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       try {
         const user = await User.findById(userId);
         if (user) {
-          if (user.telegramChatId) chatId = user.telegramChatId;
-          if (user.telegramBotToken) botToken = user.telegramBotToken;
+          targetUser = user;
           console.log(
             `Routing webhook ${source} to User ${user.email} (via userId param)`,
           );
@@ -124,17 +110,72 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Send Telegram notification
+    // Send Notification
     let sent = false;
-    if (chatId && botToken) {
-      sent = await sendNotification({
+    if (targetUser) {
+      // 1. Generate AI Summary if enabled
+      let aiSummary: string | undefined;
+
+      // Check if AI summary is enabled in preferences
+      // Note: We need to ensure preferences is populated or exists (schema default handles this)
+      if (targetUser.preferences?.aiSummary) {
+        try {
+          const { generateEventSummary } =
+            await import("@/lib/agents/eventSummary");
+
+          console.log("Generating AI summary...");
+          aiSummary = await generateEventSummary({
+            eventType: eventType !== "unknown" ? eventType : "webhook",
+            source,
+            payload,
+          });
+        } catch (error) {
+          console.error("AI Summary Generation Failed:", error);
+          // Non-blocking
+        }
+      }
+
+      // 2. Dispatch via Notification Service
+      const { notificationService } =
+        await import("@/lib/notification/service");
+
+      sent = await notificationService.send(targetUser, {
         ...result.notification,
         payloadUrl,
-        chatId,
-        botToken,
+        source,
+        eventType,
+        summary: aiSummary,
+        rawPayload: payload,
       });
     } else {
-      console.warn("Skipping notification: Missing Chat ID or Bot Token");
+      // Legacy Global Fallback (optional, but requested to keep backward compat if user not found?)
+      // Current logic relied on Env vars if user not found.
+      // But NotificationService requires a User object to determine channels.
+      // If no user found, maybe we shouldn't send?
+      // Original code: `if (chatId && botToken) ...` (where chatId came from ENV or user).
+      // Let's try to construct a dummy user for global fallback if ENV vars exist.
+      if (process.env.TELEGRAM_CHAT_ID && process.env.TELEGRAM_BOT_TOKEN) {
+        const { notificationService } =
+          await import("@/lib/notification/service");
+        // Create a fake user context for global env dispatch
+        const globalUser = {
+          telegramChatId: process.env.TELEGRAM_CHAT_ID,
+          telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
+          channels: [],
+          preferences: {},
+        } as any;
+
+        sent = await notificationService.send(globalUser, {
+          ...result.notification,
+          payloadUrl,
+          source,
+          eventType,
+        });
+      } else {
+        console.warn(
+          "Skipping notification: No target user and no global config",
+        );
+      }
     }
 
     return NextResponse.json({
@@ -143,7 +184,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       sourceHint: source,
       payloadId,
       payloadUrl,
-      telegramSent: sent,
+      telegramSent: sent, // Field name kept for Compat, but means "notificationSent"
     });
   } catch (error) {
     console.error("Webhook processing error:", error);

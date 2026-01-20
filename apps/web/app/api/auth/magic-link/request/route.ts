@@ -9,7 +9,7 @@ import { logger } from "@untools/logger";
 const requestSchema = z.object({
   email: z.string().email(),
   keepSignedIn: z.boolean().optional(),
-  returnTo: z.string().optional(),
+  returnTo: z.string().optional().nullable(),
 });
 
 export async function POST(request: Request) {
