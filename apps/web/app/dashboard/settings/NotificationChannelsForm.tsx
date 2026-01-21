@@ -35,7 +35,12 @@ export default function NotificationChannelsForm({
   const [channels, setChannels] = useState<Channel[]>(initialChannels);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [origin, setOrigin] = useState("");
   const autoSaveTimer = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   // Auto-save when channels change
   useEffect(() => {
@@ -85,7 +90,9 @@ export default function NotificationChannelsForm({
           ? { chatId: "", botToken: "" }
           : type === "discord"
             ? { webhookUrl: "" }
-            : {},
+            : type === "slack"
+              ? { webhookUrl: "" }
+              : {},
       enabled: true,
       name: `My ${type.charAt(0).toUpperCase() + type.slice(1)} Channel`,
     };
@@ -318,6 +325,56 @@ export default function NotificationChannelsForm({
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-black/5"
               />
             )}
+
+            {channel.type === "slack" && (
+              <div className="space-y-4">
+                {(channel.config as Record<string, unknown>).webhookUrl ? (
+                  <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-3 py-2 rounded-md border border-green-100">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Connected to{" "}
+                    <span className="font-medium">
+                      {String(
+                        (channel.config as Record<string, unknown>).teamName ||
+                          "Workspace",
+                      )}
+                    </span>
+                    {String(
+                      (channel.config as Record<string, unknown>).channelName ||
+                        "",
+                    )
+                      ? ` (#${String((channel.config as Record<string, unknown>).channelName)})`
+                      : ""}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <a
+                      href={`https://slack.com/oauth/v2/authorize?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID}&scope=incoming-webhook,commands,chat:write&redirect_uri=${origin}/api/auth/slack/callback&state=channel_${userId}_${index}`}
+                      className="w-full text-center px-4 py-2.5 bg-[#4A154B] hover:bg-[#361139] text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.527 2.527 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.52v-6.315zm8.833-2.52a2.528 2.528 0 0 1 2.521-2.521 2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521h-2.521v-2.521zm-1.26 2.521a2.527 2.527 0 0 1-2.521 2.521 2.527 2.527 0 0 1-2.521-2.521V6.315a2.528 2.528 0 0 1 2.521-2.521 2.528 2.528 0 0 1 2.521 2.521v6.315zm6.311-8.835a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.52H17.687v-2.52a2.528 2.528 0 0 1-2.52-2.521zm-2.521 1.26a2.528 2.528 0 0 1-2.521-2.52 2.528 2.528 0 0 1-2.521-2.52v-2.522A2.528 2.528 0 0 1 15.165 0a2.528 2.528 0 0 1 2.521 2.522v2.522z" />
+                      </svg>
+                      Connect Slack
+                    </a>
+                    <p className="text-xs text-gray-500 text-center">
+                      You&apos;ll be redirected to Slack to authorize Pinga
+                    </p>
+                  </div>
+                )}
+                {/* Webhook Filtering for Slack */}
+                <WebhookFilterForm
+                  channelIndex={index}
+                  currentRules={channel.webhookRules}
+                  onUpdate={(rules) =>
+                    updateChannel(index, { webhookRules: rules })
+                  }
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -338,6 +395,14 @@ export default function NotificationChannelsForm({
         >
           <Plus className="w-4 h-4" />
           Add Discord
+        </button>
+        <button
+          type="button"
+          onClick={() => addChannel("slack")}
+          className="flex items-center gap-2 px-4 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+        >
+          <Plus className="w-4 h-4" />
+          Add Slack
         </button>
       </div>
 

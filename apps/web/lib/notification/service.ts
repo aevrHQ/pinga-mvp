@@ -8,6 +8,7 @@ import {
 } from "./types";
 import { telegramChannel } from "./channels/telegram";
 import { discordChannel } from "./channels/discord";
+import { slackChannel } from "./channels/slack";
 
 export class NotificationService {
   private channels: Map<string, NotificationChannel> = new Map();
@@ -15,6 +16,7 @@ export class NotificationService {
   constructor() {
     this.registerChannel(telegramChannel);
     this.registerChannel(discordChannel);
+    this.registerChannel(slackChannel);
   }
 
   registerChannel(channel: NotificationChannel) {

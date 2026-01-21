@@ -1,4 +1,5 @@
 import { ToolLoopAgent, ModelMessage, tool, stepCountIs } from "ai";
+import { dashboardTools } from "./tools";
 import { createGroq } from "@ai-sdk/groq";
 import { z } from "zod";
 
@@ -40,22 +41,12 @@ Personality:
 
 Talking to: ${input.senderName || "Friend"}`,
       tools: {
+        ...dashboardTools,
         get_current_time: tool({
           description: "Get the current server time",
-          parameters: z.object({}),
+          inputSchema: z.object({}),
           execute: async () => new Date().toLocaleString(),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
-        get_project_stats: tool({
-          description: "Get current project statistics (mock)",
-          parameters: z.object({}),
-          execute: async () => ({
-            deployments: 42,
-            notifications_sent: 1337,
-            uptime: "99.9%",
-          }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any),
+        }),
       },
       stopWhen: stepCountIs(5), // Allow up to 5 steps for tool usage
     });

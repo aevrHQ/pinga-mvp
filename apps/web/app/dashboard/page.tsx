@@ -1,8 +1,17 @@
+import { getUserStats } from "@/lib/stats";
 import { getCurrentUser } from "@/lib/auth";
 import connectToDatabase from "@/lib/mongodb";
 import Installation from "@/models/Installation";
 import WebhookEvent from "@/models/WebhookEvent";
-import { Plus, Github, Activity, CheckCircle } from "lucide-react";
+import {
+  Plus,
+  Github,
+  Activity,
+  CheckCircle,
+  BarChart3,
+  Zap,
+  AlertCircle,
+} from "lucide-react";
 import { Types } from "mongoose";
 
 interface DashboardPageProps {
@@ -62,8 +71,10 @@ export default async function DashboardPage(props: DashboardPageProps) {
     userId: new Types.ObjectId(user.userId),
   });
 
-  // Mock: If no installations, show instructions
-  // Also fetch some recent events for this user's installations (if any)
+  // Fetch stats and events
+  const stats = await getUserStats(user.userId);
+
+  // Still fetch recent events for the list view
   const installationIds = installations.map((i) => i.installationId);
   const events =
     installationIds.length > 0
@@ -75,8 +86,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
       : [];
 
   const githubAppName = process.env.GITHUB_APP_NAME || "trypinga";
-  // Updated install URL to redirect back to dashboard with setup_action
-  // But actually, we set the "Setup URL" in GitHub App settings to trigger the redirect properly.
   const githubInstallUrl = `https://github.com/apps/${githubAppName}/installations/new`;
 
   return (
@@ -130,6 +139,39 @@ export default async function DashboardPage(props: DashboardPageProps) {
           </div>
         </div>
       )}
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-500">Events (24h)</h3>
+            <Activity className="w-4 h-4 text-blue-500" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {stats.eventsLast24Hours}
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-500">Success Rate</h3>
+            <Zap className="w-4 h-4 text-green-500" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {stats.successRate}%
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-gray-500">Total Failed</h3>
+            <AlertCircle className="w-4 h-4 text-red-500" />
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {stats.failedEvents}
+          </p>
+        </div>
+      </div>
 
       {/* Stats / Installations */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -189,7 +231,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Activity className="w-5 h-5 text-gray-700" />
+              <BarChart3 className="w-5 h-5 text-gray-700" />
               Recent Activity
             </h2>
           </div>
