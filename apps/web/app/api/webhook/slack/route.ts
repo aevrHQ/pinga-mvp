@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
               message: text,
               senderName: "User", // We could fetch user info if needed
               history,
+              userId: user._id.toString(),
             });
 
             if (result && result.text) {
