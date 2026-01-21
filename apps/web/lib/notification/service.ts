@@ -9,6 +9,7 @@ import {
 import { telegramChannel } from "./channels/telegram";
 import { discordChannel } from "./channels/discord";
 import { slackChannel } from "./channels/slack";
+import { webhookChannel } from "./channels/webhook";
 
 export class NotificationService {
   private channels: Map<string, NotificationChannel> = new Map();
@@ -17,6 +18,7 @@ export class NotificationService {
     this.registerChannel(telegramChannel);
     this.registerChannel(discordChannel);
     this.registerChannel(slackChannel);
+    this.registerChannel(webhookChannel);
   }
 
   registerChannel(channel: NotificationChannel) {

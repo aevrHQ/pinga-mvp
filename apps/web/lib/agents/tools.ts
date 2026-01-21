@@ -121,7 +121,7 @@ export const createDashboardTools = (context: { userId?: string } = {}) => {
     addNotificationChannel: tool({
       description: "Add a new notification channel.",
       inputSchema: z.object({
-        type: z.enum(["telegram", "discord", "slack", "email"]),
+        type: z.enum(["telegram", "discord", "slack", "email", "webhook"]),
         name: z.string().describe("Friendly name for the channel"),
         config: z
           .record(z.string(), z.any())

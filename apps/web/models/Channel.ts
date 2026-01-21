@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IChannel {
   userId: mongoose.Types.ObjectId;
-  type: "telegram" | "discord" | "whatsapp" | "slack" | "email";
+  type: "telegram" | "discord" | "whatsapp" | "slack" | "email" | "webhook";
   name?: string;
   enabled: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +31,7 @@ const ChannelSchema = new Schema<ChannelDocument>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     type: {
       type: String,
-      enum: ["telegram", "discord", "whatsapp", "slack", "email"],
+      enum: ["telegram", "discord", "whatsapp", "slack", "email", "webhook"],
       required: true,
     },
     name: { type: String },
