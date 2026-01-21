@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
 
     const webhookUrl = data.incoming_webhook?.url;
     const channelName = data.incoming_webhook?.channel;
+    const channelId = data.incoming_webhook?.channel_id; // Capture Channel ID
     const teamName = data.team?.name;
 
     // We also get an access_token that can be used for chat:write
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest) {
       ...targetChannel.config,
       webhookUrl,
       accessToken: data.access_token,
+      channelId, // Save Channel ID for 2-way convos
       channelName,
       teamName,
       teamId: data.team?.id,
@@ -107,6 +109,16 @@ export async function GET(request: NextRequest) {
     }
 
     await targetChannel.save();
+
+    // Send valid welcome message
+    if (channelId && data.access_token) {
+      const { sendSlackMessage } = await import("@/lib/webhook/slack");
+      await sendSlackMessage(
+        data.access_token,
+        channelId,
+        "👋 *Pinga Connected!* \n\nI'm now linked to this channel. You will receive notifications here.\n\n💬 *Conversation Ready:* Mention me (@Pinga) to chat!",
+      );
+    }
 
     return NextResponse.redirect(
       new URL("/dashboard/settings?success=slack_connected", request.url),

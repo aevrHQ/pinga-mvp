@@ -3,6 +3,10 @@ export const config = {
     botToken: process.env.TELEGRAM_BOT_TOKEN || "",
     chatId: process.env.TELEGRAM_CHAT_ID || "",
   },
+  slack: {
+    botToken: process.env.SLACK_BOT_TOKEN || "",
+    signingSecret: process.env.SLACK_SIGNING_SECRET || "",
+  },
   baseUrl:
     process.env.NEXT_PUBLIC_BASE_URL ||
     (process.env.VERCEL_URL
