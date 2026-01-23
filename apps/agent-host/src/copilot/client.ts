@@ -2,6 +2,8 @@
 // Uses @github/copilot-sdk for agent control
 // Reference: https://github.com/github/copilot-sdk
 
+import { CopilotClient as RealCopilotClient, SessionEvent as RealSessionEvent } from "@github/copilot-sdk";
+
 export interface CopilotClientOptions {
   model?: string;
   streaming?: boolean;
@@ -41,46 +43,87 @@ export interface Session {
  */
 export class CopilotClient {
   private model: string = process.env.COPILOT_MODEL || "gpt-4.1";
+  private client: RealCopilotClient;
   private eventListeners: Array<(event: SessionEvent) => void> = [];
+
+  constructor() {
+    // Initialize the real SDK client
+    this.client = new RealCopilotClient();
+  }
 
   async createSession(options: CopilotClientOptions): Promise<Session> {
     const self = this;
     
-    // Log session creation
-    console.log(`[CopilotClient] Creating session with model: ${options.model || self.model}`);
+    const model = options.model || this.model;
+    console.log(`[CopilotClient] Creating session with model: ${model}`);
     console.log(`[CopilotClient] Streaming: ${options.streaming !== false}`);
     if (options.tools?.length) {
       console.log(`[CopilotClient] Tools: ${options.tools.map((t: any) => t.name || "unknown").join(", ")}`);
     }
     
-    // Return a compatible session object
-    // When using real SDK, this will be replaced with actual SDK session
-    return {
-      async sendAndWait(request: { prompt: string }) {
-        try {
-          console.log(`[CopilotClient] Sending prompt to Copilot...`);
-          // The real SDK would execute here
-          // await session.sendAndWait(request);
+    try {
+      // Create real SDK session
+      const realSession = await this.client.createSession({
+        model,
+        streaming: options.streaming !== false,
+        tools: options.tools || [],
+      });
+
+      // Wrap the real session to normalize event types
+      return {
+        async sendAndWait(request: { prompt: string }) {
+          let output = "";
           
-          // For now, return a structured response
-          return {
-            data: {
-              content: "DevFlow Agent Ready - Copilot SDK connection pending"
+          realSession.on((event: any) => {
+            // Normalize SDK events to our interface
+            let mappedEvent: SessionEvent | null = null;
+
+            if (event.type === "assistant.message_delta") {
+              mappedEvent = {
+                type: "assistant.message_delta",
+                data: { deltaContent: event.data?.deltaContent },
+              };
+              output += event.data?.deltaContent || "";
+            } else if (event.type === "session.idle") {
+              mappedEvent = { type: "session.idle" };
+            } else if (event.type === "tool.start" || event.type === "tool_start") {
+              mappedEvent = {
+                type: "tool.start",
+                data: { toolName: event.data?.toolName },
+              };
+            } else if (event.type === "tool.end" || event.type === "tool_end") {
+              mappedEvent = {
+                type: "tool.end",
+                data: { result: event.data?.result },
+              };
+            } else if (event.type === "error") {
+              mappedEvent = {
+                type: "error",
+                data: { message: event.data?.message },
+              };
             }
-          };
-        } catch (error) {
-          console.error("[CopilotClient] Error:", error);
-          throw error;
-        }
-      },
-      on(callback: (event: SessionEvent) => void) {
-        self.eventListeners.push(callback);
-      }
-    };
+
+            if (mappedEvent) {
+              self.eventListeners.forEach(listener => listener(mappedEvent!));
+            }
+          });
+
+          const response = await realSession.sendAndWait(request);
+          return response;
+        },
+        on(callback: (event: SessionEvent) => void) {
+          self.eventListeners.push(callback);
+        },
+      };
+    } catch (error) {
+      console.error("[CopilotClient] Failed to create session:", error);
+      throw error;
+    }
   }
 
   async stop(): Promise<void> {
     console.log("[CopilotClient] Stopping session...");
+    // Real SDK cleanup if needed
   }
 }
 

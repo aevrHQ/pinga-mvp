@@ -163,10 +163,31 @@ async function startCommand(options: StartOptions): Promise<void> {
             progress: 0.25,
           });
 
-          // Simulate task execution
-          setTimeout(async () => {
+          // Execute task via agent-host (Copilot SDK)
+          (async () => {
             try {
-              // In real implementation, would call Copilot SDK here
+              // Get agent-host URL from environment
+              const agentHostUrl = process.env.AGENT_HOST_URL || "http://localhost:3001";
+
+              // Call agent-host to execute the workflow
+              const response = await fetch(`${agentHostUrl}/api/workflows/execute`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  taskId: cmd.task_id,
+                  intent: cmd.intent,
+                  repo: cmd.repo,
+                  branch: cmd.branch,
+                  naturalLanguage: cmd.description,
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error(`Agent-host error: ${response.statusText}`);
+              }
+
               // Report completion
               await client.completeTask(cmd.task_id, {
                 success: true,
@@ -174,10 +195,11 @@ async function startCommand(options: StartOptions): Promise<void> {
 
               console.log(`✓ Task completed: ${cmd.task_id}`);
             } catch (err) {
-              await client.failTask(cmd.task_id, `${err}`);
-              console.error(`✗ Task failed: ${cmd.task_id}`);
+              const errorMsg = err instanceof Error ? err.message : String(err);
+              await client.failTask(cmd.task_id, errorMsg);
+              console.error(`✗ Task failed: ${cmd.task_id} - ${errorMsg}`);
             }
-          }, 2000);
+          })();
         });
       }
 

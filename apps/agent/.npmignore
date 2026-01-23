@@ -1,0 +1,53 @@
+# Development files
+.env*
+.env.local
+.env.*.local
+
+# Source files
+src/
+scripts/
+
+# TypeScript
+tsconfig.json
+*.ts
+
+# Development tools
+.gitignore
+.eslintrc*
+.prettierrc*
+jest.config.*
+vitest.config.*
+
+# Build tools
+build/
+dist/
+node_modules/
+*.tgz
+
+# Tests
+__tests__/
+*.test.js
+*.test.ts
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# CI
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Documentation
+*.md
+docs/
+
+# Other
+.DS_Store
+Thumbs.db

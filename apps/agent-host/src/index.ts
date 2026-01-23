@@ -110,6 +110,57 @@ app.get("/job/:taskId", (req: Request, res: Response) => {
   });
 });
 
+// Execute workflow (called by CLI agent)
+app.post("/api/workflows/execute", (req: Request, res: Response) => {
+  const { taskId, intent, repo, branch, naturalLanguage } = req.body;
+
+  if (!taskId || !intent || !repo || !naturalLanguage) {
+    return res.status(400).json({
+      error: "Missing required fields: taskId, intent, repo, naturalLanguage",
+    });
+  }
+
+  try {
+    // Accept the request immediately
+    res.status(202).json({
+      accepted: true,
+      taskId,
+    });
+
+    // Process asynchronously
+    (async () => {
+      try {
+        const context: WorkflowContext = {
+          taskId,
+          intent,
+          repo,
+          branch,
+          naturalLanguage,
+          source: {
+            channel: "cli",
+            chatId: "local",
+            messageId: taskId,
+          },
+        };
+
+        console.log(`\n🚀 Executing workflow via API: ${taskId}`);
+        const result = await WorkflowFactory.executeWorkflow(context);
+        console.log(`✓ Workflow completed: ${taskId}`);
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`✗ Workflow failed: ${taskId} - ${errorMsg}`);
+      }
+    })();
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    res.status(500).json({
+      error: "Failed to execute workflow",
+      message: errorMessage,
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Unhandled error:", err);

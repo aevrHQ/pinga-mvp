@@ -12,7 +12,7 @@ export interface WorkflowContext {
   naturalLanguage: string;
   context?: Record<string, any>;
   source: {
-    channel: "telegram" | "slack";
+    channel: "telegram" | "slack" | "cli";
     chatId: string;
     messageId: string;
   };
