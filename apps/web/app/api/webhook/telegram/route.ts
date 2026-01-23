@@ -5,6 +5,8 @@ import { sendPlainMessage } from "@/lib/webhook/telegram";
 import { ModelMessage } from "ai";
 import { transcribeAudio } from "@/lib/transcription";
 import { config } from "@/lib/webhook/config";
+import { parseDevflowCommand, getDevflowHelpText } from "@/lib/webhook/devflow";
+import { randomUUID } from "crypto";
 
 // This route receives webhooks FROM Telegram
 // You need to set your telegram bot webhook to point here:
@@ -149,6 +151,84 @@ export async function POST(request: NextRequest) {
         }
 
         // --- EXISTING LOGIC STARTS HERE (using potentially modified 'text') ---
+
+        // --- DEVFLOW COMMAND HANDLING ---
+        const devflowCmd = parseDevflowCommand(text);
+        if (devflowCmd.isDevflow) {
+          if (!devflowCmd.intent) {
+            await sendPlainMessage(getDevflowHelpText(), chat.id.toString());
+            return NextResponse.json({ ok: true });
+          }
+
+          if (!devflowCmd.repo) {
+            await sendPlainMessage(
+              `❌ Please specify a repository!\n\nExample:\n\`!devflow ${devflowCmd.intent} owner/repo ${devflowCmd.description || "description"}\``,
+              chat.id.toString()
+            );
+            return NextResponse.json({ ok: true });
+          }
+
+          // Send task to Agent Host via Pinga's copilot endpoint
+          const taskId = randomUUID();
+          const pingaBaseUrl = process.env.NEXT_PUBLIC_PINGA_URL || "http://localhost:3000";
+
+          try {
+            const response = await fetch(`${pingaBaseUrl}/api/copilot/command`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-API-Secret": process.env.DEVFLOW_API_SECRET || "devflow-secret",
+              },
+              body: JSON.stringify({
+                taskId,
+                source: {
+                  channel: "telegram",
+                  chatId: chat.id.toString(),
+                  messageId: update.message.message_id,
+                },
+                payload: {
+                  intent: devflowCmd.intent,
+                  repo: devflowCmd.repo,
+                  branch: devflowCmd.branch,
+                  naturalLanguage: devflowCmd.description,
+                  context: devflowCmd.context,
+                },
+              }),
+            });
+
+            if (response.ok) {
+              await sendPlainMessage(
+                `🚀 *Devflow Task Started!*\n\n` +
+                  `Intent: ${devflowCmd.intent}\n` +
+                  `Repository: ${devflowCmd.repo}\n` +
+                  `${devflowCmd.branch ? `Branch: ${devflowCmd.branch}\n` : ""}` +
+                  `Request: ${devflowCmd.description}\n\n` +
+                  `⏳ Processing... You'll receive updates here.\n\n` +
+                  `Task ID: \`${taskId}\``,
+                chat.id.toString()
+              );
+              console.log(
+                `[Telegram Webhook] Forwarded devflow command to Agent Host: ${taskId}`
+              );
+            } else {
+              await sendPlainMessage(
+                `❌ Failed to process Devflow command. Please try again later.`,
+                chat.id.toString()
+              );
+              console.error(
+                `[Telegram Webhook] Failed to forward devflow command: ${response.status}`
+              );
+            }
+          } catch (error) {
+            console.error("[Telegram Webhook] Error forwarding devflow command:", error);
+            await sendPlainMessage(
+              `❌ Error processing Devflow command: ${error instanceof Error ? error.message : "Unknown error"}`,
+              chat.id.toString()
+            );
+          }
+
+          return NextResponse.json({ ok: true });
+        }
 
         // Handle /help command
         if (

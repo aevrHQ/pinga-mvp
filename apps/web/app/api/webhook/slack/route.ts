@@ -4,6 +4,8 @@ import { verifySlackRequest, sendSlackMessage } from "@/lib/webhook/slack";
 import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/User";
 import { ModelMessage } from "ai";
+import { parseDevflowCommand, getDevflowHelpText } from "@/lib/webhook/devflow";
+import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
   // Helper for logging
@@ -62,6 +64,92 @@ export async function POST(request: NextRequest) {
         console.log(
           `[Slack Webhook] Received ${event.type} in ${channelId} from ${userId}: ${text}`,
         );
+
+        // --- DEVFLOW COMMAND HANDLING ---
+        const devflowCmd = parseDevflowCommand(text);
+        if (devflowCmd.isDevflow) {
+          if (!devflowCmd.intent) {
+            await sendSlackMessage(
+              config.slack.botToken,
+              channelId,
+              getDevflowHelpText()
+            );
+            return NextResponse.json({ ok: true });
+          }
+
+          if (!devflowCmd.repo) {
+            await sendSlackMessage(
+              config.slack.botToken,
+              channelId,
+              `❌ Please specify a repository!\n\nExample:\n\`!devflow ${devflowCmd.intent} owner/repo ${devflowCmd.description || "description"}\``
+            );
+            return NextResponse.json({ ok: true });
+          }
+
+          // Send task to Agent Host via Pinga's copilot endpoint
+          const taskId = randomUUID();
+          const pingaBaseUrl = process.env.NEXT_PUBLIC_PINGA_URL || "http://localhost:3000";
+
+          try {
+            const response = await fetch(`${pingaBaseUrl}/api/copilot/command`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-API-Secret": process.env.DEVFLOW_API_SECRET || "devflow-secret",
+              },
+              body: JSON.stringify({
+                taskId,
+                source: {
+                  channel: "slack",
+                  chatId: channelId,
+                  messageId: event.ts,
+                },
+                payload: {
+                  intent: devflowCmd.intent,
+                  repo: devflowCmd.repo,
+                  branch: devflowCmd.branch,
+                  naturalLanguage: devflowCmd.description,
+                  context: devflowCmd.context,
+                },
+              }),
+            });
+
+            if (response.ok) {
+              await sendSlackMessage(
+                config.slack.botToken,
+                channelId,
+                `🚀 *Devflow Task Started!*\n\n` +
+                  `Intent: ${devflowCmd.intent}\n` +
+                  `Repository: ${devflowCmd.repo}\n` +
+                  `${devflowCmd.branch ? `Branch: ${devflowCmd.branch}\n` : ""}` +
+                  `Request: ${devflowCmd.description}\n\n` +
+                  `⏳ Processing... You'll receive updates here.\n\n` +
+                  `Task ID: \`${taskId}\``
+              );
+              console.log(
+                `[Slack Webhook] Forwarded devflow command to Agent Host: ${taskId}`
+              );
+            } else {
+              await sendSlackMessage(
+                config.slack.botToken,
+                channelId,
+                `❌ Failed to process Devflow command. Please try again later.`
+              );
+              console.error(
+                `[Slack Webhook] Failed to forward devflow command: ${response.status}`
+              );
+            }
+          } catch (error) {
+            console.error("[Slack Webhook] Error forwarding devflow command:", error);
+            await sendSlackMessage(
+              config.slack.botToken,
+              channelId,
+              `❌ Error processing Devflow command: ${error instanceof Error ? error.message : "Unknown error"}`
+            );
+          }
+
+          return NextResponse.json({ ok: true });
+        }
 
         // --- LINKING LOGIC ---
         // Since we can't deep-link easily, users can type "link channel_..."
