@@ -40,9 +40,11 @@ export class PlatformClient {
     });
   }
 
-  async register(): Promise<{ registered_at: string; next_poll_in: number }> {
-    const response = await this.client.post("/api/agents/register", {
-      agent_id: this.agentId,
+  async register(): Promise<{ success: boolean; token: string; agent: { id: string; name: string } }> {
+    const response = await this.client.post("/api/agents", {
+      agentId: this.agentId,
+      userId: "", // Will be set by platform from token
+      name: "agent", // Will be updated by platform
       version: "0.1.0",
       platform: process.platform,
       capabilities: ["fix-bug", "feature", "explain", "review-pr"],
@@ -55,14 +57,8 @@ export class PlatformClient {
     return response.data.commands || [];
   }
 
-  async heartbeat(): Promise<{ status: string }> {
-    const response = await this.client.post(
-      `/api/agents/${this.agentId}/heartbeat`,
-      {
-        timestamp: new Date().toISOString(),
-        status: "healthy",
-      }
-    );
+  async heartbeat(): Promise<{ success: boolean; lastHeartbeat: string }> {
+    const response = await this.client.post(`/api/agents/${this.agentId}/heartbeat`);
     return response.data;
   }
 
