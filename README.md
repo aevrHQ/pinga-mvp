@@ -1,132 +1,70 @@
 # Pinga - Universal Webhook Notification System
 
-Pinga is a multi-tenant SaaS platform that turns webhooks (GitHub, Render, etc.) into rich, structured Telegram notifications. It is designed for developers and teams who want to keep track of their projects without spamming their channels with raw JSON.
+Pinga is a multi-tenant SaaS platform that turns webhooks (GitHub, Render, etc.) into rich, structured notifications for Telegram and Slack. Designed for developers who want to stay in the loop without the noise.
 
-## 🚀 Features
+## 🚀 Features at a Glance
 
-- **Multi-tenant SaaS**: Each user gets their own dashboard and isolated environment.
-- **Authentication**: Secure passwordless login via **Magic Link** and **OTP**.
-- **Quick Access**: Set a **4-digit PIN** for faster login on trusted devices.
-- **Dashboard**: Manage connected repositories and view live webhook activity.
-- **One-Click Connections**: Instantly link your Telegram account via deep links.
-- **Rich Notifications**: Beautifully formatted messages with emojis and action links.
+- **Multi-Channel**: Seamless support for **Telegram** and **Slack**.
+- **AI-Powered**: Chat with your notifications, ask questions, and use voice commands.
+- **Secure**: Passwordless auth (Magic Link, OTP) + Local PIN protection.
+- **Multi-Tenant**: Isolated environments for every user.
+- **Easy Integration**: One-click connection flows and simple webhook endpoints.
 
----
+## 📚 Documentation
 
-## 📖 User Guide
+Detailed guides are available in the `docs/` directory:
 
-### 1. Getting Started
+- [**Features Breakdown**](./docs/features.md) - Deep dive into what Pinga can do.
+- [**Telegram Guide**](./docs/telegram-guide.md) - How to set up and use the Telegram bot.
+- [**Slack Guide**](./docs/slack-guide.md) - Connecting Slack channels and threading.
+- [**API Reference**](./docs/api-reference.md) - Technical details on webhook endpoints.
 
-- Visit the [Pinga Dashboard](https://pinga-mvp-web.vercel.app).
-- Enter your email address to receive a **Magic Link**.
-- Click the link in your email (or enter the 6-digit OTP code) to log in.
-
-### 2. Connect Telegram
-
-- Navigate to **Settings**.
-- Click **Connect with One Click**.
-- This will open Telegram and start the `@pingapingbot`.
-- The bot will confirm: _"✅ Successfully connected..."_
-
-### 3. Receive Notifications
-
-- In the **Overview** page, click **Add Repository**.
-- Install the Pinga GitHub App on your desired repositories.
-- That's it! You will now receive alerts for:
-  - ⭐ New Stars
-  - 🐛 Issues Opened/Closed
-  - 🔄 Pull Request Updates
-  - 🚀 Deployments
-
-### 4. Enable PIN Login (Optional)
-
-- Go to **Settings** -> **Security**.
-- Enter a 4-digit PIN (e.g., `1234`) and save.
-- Next time you log in, click **"Login with PIN instead"** to skip the email verification!
-
----
-
-## 💻 Developer Guide
+## 🛠 Quick Start (Development)
 
 ### Prerequisites
 
 - Node.js 18+
 - MongoDB (Local or Atlas)
-- ngrok (for local webhook testing)
+- ngrok (for exposing localhost to webhooks)
 
 ### Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/aevrHQ/pinga-mvp.git
-cd pinga-mvp
+1.  **Clone the repository**
+    \`\`\`bash
+    git clone https://github.com/aevrHQ/pinga-mvp.git
+    cd pinga-mvp
+    \`\`\`
 
-# Install dependencies
-npm install
+2.  **Install dependencies**
+    \`\`\`bash
+    npm install
+    \`\`\`
 
-# Run development server
-npm run dev
-```
+3.  **Configure Environment**
+    Copy \`apps/web/.env.example\` to \`apps/web/.env.local\` and fill in the secrets (MongoDB URI, Telegram Token, etc.).
 
-### Environment Variables
+4.  **Run Development Server**
+    \`\`\`bash
+    npm run dev
+    \`\`\`
+    Visit [http://localhost:3000](http://localhost:3000).
 
-Copy `apps/web/.env.example` to `apps/web/.env.local` and set the following:
+### Receiving Webhooks Locally
 
-```env
-# Database
-MONGODB_URI=mongodb://localhost:27017/pinga-mvp
+Expose your local server using ngrok:
 
-# Authentication (JWT)
-ACCESS_TOKEN_SECRET=your-super-secret-key-at-least-32-chars
+\`\`\`bash
+ngrok http 3000
+\`\`\`
 
-# Telegram Bot
-TELEGRAM_BOT_TOKEN=@pingapingbot_token_from_botfather
-TELEGRAM_CHAT_ID=your_default_chat_id
+Use the provided https URL to set up your Telegram/Slack webhooks.
 
-# Email (SMTP or Gmail)
-MAIL_USER=your_email@gmail.com
-MAIL_PASS=your_app_password
+## 🏗 Architecture
 
-# App URL (Important for Magic Links)
-NEXT_PUBLIC_BASE_URL=http://localhost:3000
-```
-
-### Webhook Development (Local)
-
-To receive webhooks locally, you must expose your localhost via `ngrok`:
-
-1.  Run ngrok:
-    ```bash
-    ngrok http 3000
-    ```
-2.  Set your Telegram Webhook:
-    ```bash
-    curl "https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=https://<YOUR-NGROK-ID>.ngrok-free.app/api/webhook/telegram"
-    ```
-3.  Set your GitHub App Webhook URL to:
-    `https://<YOUR-NGROK-ID>.ngrok-free.app/api/webhook/github`
-
-### Deployment (Vercel)
-
-1.  Push to GitHub.
-2.  Import project into Vercel.
-3.  Add all **Environment Variables** in Vercel Settings.
-    - **Important**: Use a cloud MongoDB URI (e.g., MongoDB Atlas).
-    - Set `NEXT_PUBLIC_BASE_URL` to your Vercel domain.
-4.  Update Telegram Webhook for production:
-    ```bash
-    curl "https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=https://<YOUR-VERCEL-DOMAIN>/api/webhook/telegram"
-    ```
-
----
-
-## 🛠 Architecture
-
-- **Frontend**: Next.js 16 (App Router)
+- **Frontend/API**: Next.js 16 (App Router)
 - **Database**: MongoDB (Mongoose)
-- **Styling**: TailwindCSS + Lucide Icons + Motion
-- **Auth**: Custom JWT + Magic Link/OTP system
-- **Validation**: Zod formatting
+- **AI**: Vercel AI SDK + Groq
+- **Styling**: TailwindCSS + Motion
 
 ## License
 
