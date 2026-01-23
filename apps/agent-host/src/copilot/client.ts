@@ -1,19 +1,19 @@
 // Copilot SDK client singleton
 // When @github/copilot-sdk becomes available, replace this with actual import
 
-interface CopilotClientOptions {
+export interface CopilotClientOptions {
   model?: string;
   streaming?: boolean;
   tools?: any[];
   mcpServers?: Record<string, any>;
 }
 
-interface SessionEvent {
+export interface SessionEvent {
   type: string;
   data?: any;
 }
 
-interface Session {
+export interface Session {
   sendAndWait(request: { prompt: string }): Promise<any>;
   on(callback: (event: SessionEvent) => void): void;
 }
@@ -35,4 +35,5 @@ export function getCopilotClient(): CopilotClient {
   }
   return copilotInstance;
 }
+
 

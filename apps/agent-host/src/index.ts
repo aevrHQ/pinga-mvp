@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { CommandRequest, CommandResponse } from "./types.js";
 import PingaClient from "./pinga/client.js";
 import JobQueue from "./queue/processor.js";
+import { WorkflowFactory, WorkflowContext } from "./copilot/flows/index.js";
 
 dotenv.config();
 
@@ -126,7 +127,7 @@ app.listen(port, () => {
   console.log(`📊 Health check: http://localhost:${port}/health`);
 });
 
-// Command handler (placeholder - will call actual workflow)
+// Command handler - dispatches to appropriate workflow
 async function handleCommand(command: CommandRequest): Promise<void> {
   console.log(`\n📋 Processing command: ${command.taskId}`);
   console.log(`   Intent: ${command.payload.intent}`);
@@ -135,22 +136,30 @@ async function handleCommand(command: CommandRequest): Promise<void> {
 
   jobQueue.updateJobStatus(command.taskId, "processing");
 
-  // TODO: Implement actual workflow handling based on intent
-  // For now, just send a progress update
+  try {
+    // Build workflow context
+    const context: WorkflowContext = {
+      taskId: command.taskId,
+      intent: command.payload.intent,
+      repo: command.payload.repo,
+      branch: command.payload.branch,
+      naturalLanguage: command.payload.naturalLanguage,
+      context: command.payload.context,
+      source: command.source,
+    };
 
-  await pingaClient.sendProgressUpdate({
-    taskId: command.taskId,
-    status: "in_progress",
-    step: "Initializing Copilot session",
-    progress: 0.1,
-  });
+    // Execute the workflow
+    const result = await WorkflowFactory.executeWorkflow(context);
 
-  // Simulate processing
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (result.success) {
+      jobQueue.updateJobStatus(command.taskId, "completed");
+    } else {
+      jobQueue.updateJobStatus(command.taskId, "failed", result.error);
+    }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    jobQueue.updateJobStatus(command.taskId, "failed", errorMsg);
 
-  await pingaClient.notifyCompletion(command.taskId, {
-    summary: "Task received and queued. Workflow implementation coming soon.",
-  });
-
-  jobQueue.updateJobStatus(command.taskId, "completed");
+    await pingaClient.notifyError(command.taskId, errorMsg);
+  }
 }

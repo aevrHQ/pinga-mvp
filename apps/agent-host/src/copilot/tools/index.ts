@@ -1,9 +1,20 @@
 // Export all custom tool definitions and factories
+import { createGitOperationsTool, GitTool } from "./git.js";
+import { createTestRunnerTool, TestRunner } from "./tests.js";
+import {
+  createReadFileTool,
+  createWriteFileTool,
+  createListFilesTool,
+  FileManager,
+} from "./files.js";
+import { createOpenPullRequestTool, GitHubPRManager } from "./github.js";
+import { createProgressUpdateTool, ProgressTracker } from "./progress.js";
+import { ToolError, executeCommand, ensureRepoStoragePath, getRepoPath } from "./utils.js";
 
-export { createGitOperationsTool, GitTool } from "./git.js";
+export { createGitOperationsTool, GitTool };
 export type { GitOperationInput, GitOperationResult } from "./git.js";
 
-export { createTestRunnerTool, TestRunner } from "./tests.js";
+export { createTestRunnerTool, TestRunner };
 export type { TestRunInput, TestRunResult } from "./tests.js";
 
 export {
@@ -11,7 +22,7 @@ export {
   createWriteFileTool,
   createListFilesTool,
   FileManager,
-} from "./files.js";
+};
 export type {
   ReadFileInput,
   ReadFileResult,
@@ -21,24 +32,13 @@ export type {
   ListFilesResult,
 } from "./files.js";
 
-export { createOpenPullRequestTool, GitHubPRManager } from "./github.js";
+export { createOpenPullRequestTool, GitHubPRManager };
 export type { OpenPRInput, OpenPRResult } from "./github.js";
 
-export { createProgressUpdateTool, ProgressTracker } from "./progress.js";
+export { createProgressUpdateTool, ProgressTracker };
 export type { ProgressUpdateInput, ProgressUpdateResult } from "./progress.js";
 
-export { ToolError, executeCommand, ensureRepoStoragePath, getRepoPath } from "./utils.js";
-
-// Import all factories for getAllTools
-import {
-  createGitOperationsTool,
-  createTestRunnerTool,
-  createReadFileTool,
-  createWriteFileTool,
-  createListFilesTool,
-  createOpenPullRequestTool,
-  createProgressUpdateTool,
-} from "./index.js";
+export { ToolError, executeCommand, ensureRepoStoragePath, getRepoPath };
 
 // Convenience function to get all tools at once
 export function getAllTools(): any[] {
