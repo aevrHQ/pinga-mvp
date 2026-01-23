@@ -1,21 +1,30 @@
 {
   "name": "devflow-agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Self-hosted AI DevOps agent for DevFlow platform",
   "type": "module",
   "bin": {
-    "devflow-agent": "./bin/devflow-agent.mjs"
+    "devflow-agent": "./bin/devflow-agent.js"
   },
   "main": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devflow/devflow-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/devflow/devflow-agent/issues"
+  },
+  "homepage": "https://github.com/devflow/devflow-agent#readme",
   "scripts": {
     "build": "tsc && node fix-imports.js",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "cli": "tsx src/cli.ts",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "devflow",
@@ -25,9 +34,11 @@
     "automation",
     "github",
     "slack",
-    "telegram"
+    "telegram",
+    "github-copilot",
+    "cli-agent"
   ],
-  "author": "DevFlow",
+  "author": "DevFlow Contributors",
   "license": "MIT",
   "dependencies": {
     "@github/copilot-sdk": "^0.1.16",
@@ -42,5 +53,8 @@
     "@types/yargs": "^17.0.35",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
