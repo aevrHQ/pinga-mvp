@@ -19,24 +19,21 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dumb-init and curl for health checks
-RUN apk add --no-cache dumb-init curl
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Copy package files
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm install --only=production
+RUN npm install --omit=dev
 
 # Copy built code from builder
 COPY --from=builder /app/dist ./dist
 
-# Health check - increased start period to 15s to allow server startup
+# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD curl -f http://localhost:3001/health || exit 1
-
-# Use dumb-init to handle signals
-ENTRYPOINT ["/sbin/dumb-init", "--"]
 
 # Start the application
 CMD ["node", "dist/index.js"]
