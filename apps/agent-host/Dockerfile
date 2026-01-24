@@ -19,21 +19,12 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dumb-init to handle signals properly
-RUN apk add --no-cache dumb-init
+# Install curl for health checks
+RUN apk add --no-cache curl
 
-# Copy package files
-COPY package*.json ./
-
-# Install production dependencies only
-RUN npm install --only=production
-
-# Copy built code from builder
-COPY --from=builder /app/dist ./dist
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "const http = require('http'); http.get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+# Health check - increased start period to 15s to allow server startup
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
 
 # Use dumb-init to handle signals
 ENTRYPOINT ["/sbin/dumb-init", "--"]
