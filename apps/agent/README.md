@@ -1,4 +1,4 @@
-# devflow-agent
+# @untools/devflow
 
 The self-hosted CLI agent for **DevFlow** - an AI-powered DevOps platform powered by GitHub Copilot.
 
@@ -6,7 +6,7 @@ Install this CLI tool on your local machine or server to execute AI-driven devel
 
 ## What is DevFlow?
 
-DevFlow is a production SaaS platform that orchestrates AI-powered development workflows. Create a DevFlow account, connect your GitHub repositories and communication channels (Slack, Telegram), then use the **devflow-agent** CLI to execute complex development tasks right from your machine.
+DevFlow is a production SaaS platform that orchestrates AI-powered development workflows. Create a DevFlow account, connect your GitHub repositories and communication channels (Slack, Telegram), then use the **@untools/devflow** CLI to execute complex development tasks right from your machine.
 
 **Key Features:**
 - 🤖 AI-powered development workflows (fix bugs, implement features, write documentation, review PRs)
@@ -18,16 +18,16 @@ DevFlow is a production SaaS platform that orchestrates AI-powered development w
 
 ## Installation
 
-Install devflow-agent globally via npm:
+Install @untools/devflow globally via npm:
 
 ```bash
-npm install -g devflow-agent
+npm install -g @untools/devflow
 ```
 
 Or locally in your project:
 
 ```bash
-npm install devflow-agent
+npm install @untools/devflow
 ```
 
 ## Quick Start
@@ -37,7 +37,7 @@ npm install devflow-agent
 Initialize your local agent and connect to the DevFlow platform:
 
 ```bash
-devflow-agent init
+devflow init
 ```
 
 This command will:
@@ -51,7 +51,7 @@ This command will:
 Run the CLI agent to begin polling for tasks:
 
 ```bash
-devflow-agent start
+devflow start
 ```
 
 The agent will:
@@ -125,23 +125,23 @@ DEVFLOW_POLL_INTERVAL=5000
 
 ## Commands
 
-### `devflow-agent init`
+### `devflow init`
 
 Initialize and authenticate with the DevFlow platform.
 
 ```bash
-devflow-agent init
+devflow init
 # ? Platform URL: https://devflow.dev
 # ? Authenticate with DevFlow? (Y/n) 
 # ✓ Configuration saved to ~/.devflow/config.json
 ```
 
-### `devflow-agent start`
+### `devflow start`
 
 Start the agent and begin polling for tasks.
 
 ```bash
-devflow-agent start
+devflow start
 # 🚀 DevFlow Agent started
 # 📍 Platform: https://devflow.dev
 # 🔄 Polling interval: 5000ms
@@ -154,12 +154,12 @@ The agent will display:
 - Completion status
 - Any errors encountered
 
-### `devflow-agent status`
+### `devflow status`
 
 Check the current status and configuration of your agent.
 
 ```bash
-devflow-agent status
+devflow status
 # 🏃 Agent Status
 # ├─ Connected: true
 # ├─ Agent ID: agent-12345
@@ -168,12 +168,12 @@ devflow-agent status
 # └─ Tasks processed: 5
 ```
 
-### `devflow-agent help`
+### `devflow help`
 
 Display help for all available commands.
 
 ```bash
-devflow-agent help
+devflow help
 ```
 
 ## Supported Workflows
@@ -224,7 +224,7 @@ Platform notifies user (Slack/Telegram)
 Check that you've initialized the agent first:
 
 ```bash
-devflow-agent status  # If this fails, run init first
+devflow status  # If this fails, run init first
 ```
 
 ### Tasks not received
@@ -232,7 +232,7 @@ devflow-agent status  # If this fails, run init first
 Verify your platform connection:
 
 ```bash
-devflow-agent status
+devflow status
 # Look for "Connected: true"
 ```
 
@@ -248,7 +248,7 @@ cat ~/.devflow/config.json | grep api_key
 Enable debug logging:
 
 ```bash
-DEVFLOW_LOG_LEVEL=debug devflow-agent start
+DEVFLOW_LOG_LEVEL=debug devflow start
 ```
 
 Check agent-host is running (if using custom workflows):
@@ -264,17 +264,17 @@ Re-initialize your authentication:
 
 ```bash
 rm ~/.devflow/config.json
-devflow-agent init
+devflow init
 ```
 
 ## Development
 
-For developers contributing to devflow-agent:
+For developers contributing to devflow:
 
 ```bash
 # Clone the repository
-git clone https://github.com/devflow/devflow-agent.git
-cd devflow-agent
+git clone https://github.com/devflow/devflow.git
+cd devflow
 
 # Install dependencies
 npm install
@@ -322,8 +322,8 @@ MIT License - see LICENSE file for details
 ## Support
 
 - 📖 [DevFlow Documentation](https://docs.devflow.dev)
-- 💬 [GitHub Discussions](https://github.com/devflow/devflow-agent/discussions)
-- 🐛 [Report Issues](https://github.com/devflow/devflow-agent/issues)
+- 💬 [GitHub Discussions](https://github.com/devflow/devflow/discussions)
+- 🐛 [Report Issues](https://github.com/devflow/devflow/issues)
 - 📧 [Email Support](support@devflow.dev)
 
 ## Changelog

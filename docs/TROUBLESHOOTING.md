@@ -20,12 +20,12 @@ nvm install 18
 nvm use 18
 
 # Try install again
-npm install -g devflow-agent
+npm install -g devflow
 ```
 
 ### Command not found
 
-**Error:** `devflow-agent: command not found`
+**Error:** `devflow: command not found`
 
 **Cause:** npm global bin not in PATH
 
@@ -40,7 +40,7 @@ echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 
 # Try again
-devflow-agent --version
+devflow --version
 ```
 
 ### Permission denied
@@ -58,7 +58,7 @@ echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
 # Reinstall
-npm install -g devflow-agent
+npm install -g devflow
 ```
 
 ---
@@ -81,7 +81,7 @@ curl http://localhost:3000/health
 ping google.com
 
 # Try init again
-devflow-agent init
+devflow init
 ```
 
 ### Browser doesn't open for OAuth
@@ -115,7 +115,7 @@ curl -X POST http://localhost:3000/api/auth/pin/login \
 **Solution:**
 ```bash
 # Re-authenticate
-devflow-agent init
+devflow init
 
 # Or update token manually
 # Copy new token and update ~/.devflow/config.json
@@ -138,7 +138,7 @@ curl -H "Authorization: Bearer <token>" \
   http://localhost:3000/api/agents
 
 # If missing, re-register
-devflow-agent init
+devflow init
 ```
 
 ---
@@ -158,7 +158,7 @@ cp ~/.devflow/config.json ~/.devflow/config.json.bak
 
 # Delete and recreate
 rm ~/.devflow/config.json
-devflow-agent init
+devflow init
 ```
 
 ### Wrong platform URL
@@ -177,7 +177,7 @@ nano ~/.devflow/config.json
 # Local: http://localhost:3000
 
 # Restart agent
-devflow-agent start
+devflow start
 ```
 
 ### Missing credentials
@@ -190,7 +190,7 @@ devflow-agent start
 ```bash
 # Remove and reinitialize
 rm ~/.devflow/config.json
-devflow-agent init
+devflow init
 ```
 
 ---
@@ -245,11 +245,11 @@ export AGENT_HOST_URL=http://localhost:3001
 ```bash
 # Increase timeout via environment variable
 export REQUEST_TIMEOUT=60000
-devflow-agent start
+devflow start
 
 # Or reduce polling frequency
 export DEVFLOW_POLL_INTERVAL=10000
-devflow-agent start
+devflow start
 ```
 
 ### DNS resolution failure
@@ -288,7 +288,7 @@ ping devflow.dev
 **Solution:**
 ```bash
 # Check agent is registered and connected
-devflow-agent status
+devflow status
 
 # Verify agent is listed on platform
 curl -H "Authorization: Bearer <token>" \
@@ -320,10 +320,10 @@ curl -X POST http://localhost:3000/api/tasks \
 curl http://localhost:3001/health
 
 # Enable debug logging
-DEVFLOW_LOG_LEVEL=debug devflow-agent start
+DEVFLOW_LOG_LEVEL=debug devflow start
 
 # Check system resources
-top -p $(pgrep -f "devflow-agent")
+top -p $(pgrep -f "devflow")
 # If CPU/memory high, kill and restart
 
 # Increase task timeout
@@ -448,12 +448,12 @@ npm install
 **Solution:**
 ```bash
 # Check current task
-devflow-agent status
+devflow status
 # Look for in-progress tasks
 
 # Kill if necessary
-pkill -f "devflow-agent"
-devflow-agent start
+pkill -f "devflow"
+devflow start
 
 # Reduce concurrency
 nano ~/.devflow/config.json
@@ -479,7 +479,7 @@ nano ~/.devflow/config.json
 # Add "max_memory_mb": 256
 
 # Restart agent
-devflow-agent start
+devflow start
 ```
 
 ### Slow polling
@@ -499,7 +499,7 @@ nano ~/.devflow/config.json
 
 # Or via environment variable
 export DEVFLOW_POLL_INTERVAL=3000
-devflow-agent start
+devflow start
 ```
 
 ---
@@ -510,7 +510,7 @@ devflow-agent start
 
 ```bash
 # Set log level
-DEVFLOW_LOG_LEVEL=debug devflow-agent start
+DEVFLOW_LOG_LEVEL=debug devflow start
 
 # Or change in config
 nano ~/.devflow/config.json
@@ -523,7 +523,7 @@ nano ~/.devflow/config.json
 # Agent logs are printed to terminal
 
 # Or save to file
-devflow-agent start > agent.log 2>&1
+devflow start > agent.log 2>&1
 
 # View logs in real-time
 tail -f agent.log
@@ -551,7 +551,7 @@ npm run dev
 
 ```bash
 # View all HTTP requests
-DEBUG=axios devflow-agent start
+DEBUG=axios devflow start
 
 # Or use curl with verbose flag
 curl -v http://localhost:3000/api/agents
@@ -579,12 +579,12 @@ If your issue isn't listed here:
 
 1. **Check logs**
    ```bash
-   DEVFLOW_LOG_LEVEL=debug devflow-agent start
+   DEVFLOW_LOG_LEVEL=debug devflow start
    ```
 
 2. **Collect diagnostics**
    ```bash
-   devflow-agent status
+   devflow status
    cat ~/.devflow/config.json
    node --version
    npm --version
@@ -592,12 +592,12 @@ If your issue isn't listed here:
    ```
 
 3. **Report issue**
-   - [GitHub Issues](https://github.com/devflow/devflow-agent/issues)
+   - [GitHub Issues](https://github.com/devflow/devflow/issues)
    - Include: error message, logs, diagnostics
    - Describe: what you were doing, what happened
 
 4. **Ask community**
-   - [GitHub Discussions](https://github.com/devflow/devflow-agent/discussions)
+   - [GitHub Discussions](https://github.com/devflow/devflow/discussions)
    - [Slack Community](https://devflow-community.slack.com)
 
 ---

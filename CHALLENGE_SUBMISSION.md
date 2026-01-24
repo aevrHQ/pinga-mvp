@@ -50,11 +50,11 @@ Unlike standalone CLI tools, DevFlow enables teams to:
 ### 2. DevFlow Agent CLI (Self-Hosted)
 **Location:** `apps/agent/`  
 **Framework:** Node.js / TypeScript  
-**Distribution:** npm package `devflow-agent`
+**Distribution:** npm package `devflow`
 
 **Features:**
-- Single-command initialization: `devflow-agent init`
-- Background polling daemon: `devflow-agent start`
+- Single-command initialization: `devflow init`
+- Background polling daemon: `devflow start`
 - OAuth token management with 30-day expiry
 - Secure config file storage (mode 0o600)
 - Task polling every 5 seconds
@@ -62,16 +62,16 @@ Unlike standalone CLI tools, DevFlow enables teams to:
 
 **Commands:**
 ```bash
-devflow-agent init    # Initialize & authenticate
-devflow-agent start   # Start polling daemon
-devflow-agent status  # Show connection status
+devflow init    # Initialize & authenticate
+devflow start   # Start polling daemon
+devflow status  # Show connection status
 ```
 
 **Key Files:**
 - `/src/cli.ts` - Main CLI implementation (8,100+ lines)
 - `/src/config.ts` - Configuration management
 - `/src/agent/client.ts` - Platform API client
-- `/bin/devflow-agent.js` - Entry point for npm bin
+- `/bin/devflow.js` - Entry point for npm bin
 
 ### 3. Agent-Host (Workflow Execution Engine)
 **Location:** `apps/agent-host/`  
@@ -114,7 +114,7 @@ devflow-agent status  # Show connection status
 │   User's Machine   │    │  User's Slack      │
 │                    │    │  Telegram Account  │
 │  ┌──────────────┐  │    │                    │
-│  │ devflow-agent│  │    │  (Notifications)   │
+│  │ devflow│  │    │  (Notifications)   │
 │  │ (npm install)│  │    └────────────────────┘
 │  └──────┬───────┘  │
 │         │ polls    │
@@ -135,7 +135,7 @@ devflow-agent status  # Show connection status
 ### Authentication Flow
 
 ```
-1. User runs: devflow-agent init
+1. User runs: devflow init
    ↓
 2. Browser opens for OAuth (or PIN login for dev)
    ↓
@@ -232,10 +232,10 @@ Real integration in: `apps/agent-host/src/copilot/client.ts` (lines 1-115)
 
 **Evidence:**
 ```bash
-npm install -g devflow-agent
-devflow-agent init
-devflow-agent start
-devflow-agent status
+npm install -g devflow
+devflow init
+devflow start
+devflow status
 ```
 
 Distributed via npm with proper bin configuration.
@@ -290,7 +290,7 @@ Distributed via npm with proper bin configuration.
 
 ```bash
 # Step 1: Start the agent
-devflow-agent start
+devflow start
 # Output: ✓ Connected to https://devflow.dev
 #         ⏳ Waiting for tasks...
 
@@ -335,13 +335,13 @@ devflow-agent start
 
 ```bash
 # 1. Install globally
-npm install -g devflow-agent@0.2.0
+npm install -g devflow@0.2.0
 
 # 2. Initialize
-devflow-agent init
+devflow init
 
 # 3. Start
-devflow-agent start
+devflow start
 
 # 4. Create task in web platform and watch it execute
 ```
@@ -379,7 +379,7 @@ npm run cli --workspace=apps/agent -- start
 
 ### Configuration & Build
 - `apps/agent/package.json` - npm package config
-- `apps/agent/bin/devflow-agent.js` - CLI entry point
+- `apps/agent/bin/devflow.js` - CLI entry point
 - `apps/agent/tsconfig.json` - TypeScript configuration
 - `.npmignore` - npm package excludes
 
@@ -400,12 +400,12 @@ npm run cli --workspace=apps/agent -- start
 ## Challenge Submission Checklist
 
 - ✅ Built with GitHub Copilot SDK
-- ✅ Is a CLI tool (`devflow-agent` npm package)
+- ✅ Is a CLI tool (`devflow` npm package)
 - ✅ Innovative use case (two-tier SaaS + self-hosted)
 - ✅ Complete & production-ready
 - ✅ Well documented (60,000+ words)
-- ✅ Easy to install (`npm install -g devflow-agent`)
-- ✅ Easy to use (one command: `devflow-agent init`)
+- ✅ Easy to install (`npm install -g devflow`)
+- ✅ Easy to use (one command: `devflow init`)
 - ✅ Tested end-to-end
 - ✅ Open source ready (MIT license)
 - ✅ Submission deadline: Feb 15, 2025 ✓ (Completed Jan 24)
@@ -414,9 +414,9 @@ npm run cli --workspace=apps/agent -- start
 
 ## Next Steps for Users
 
-1. Install: `npm install -g devflow-agent`
-2. Authenticate: `devflow-agent init`
-3. Start polling: `devflow-agent start`
+1. Install: `npm install -g devflow`
+2. Authenticate: `devflow init`
+3. Start polling: `devflow start`
 4. Create tasks: Visit web dashboard
 5. Watch magic happen! ✨
 
@@ -424,9 +424,9 @@ npm run cli --workspace=apps/agent -- start
 
 ## Support & Community
 
-- **GitHub:** https://github.com/devflow/devflow-agent
-- **Discussions:** https://github.com/devflow/devflow-agent/discussions
-- **Issues:** https://github.com/devflow/devflow-agent/issues
+- **GitHub:** https://github.com/devflow/devflow
+- **Discussions:** https://github.com/devflow/devflow/discussions
+- **Issues:** https://github.com/devflow/devflow/issues
 - **Email:** support@devflow.dev
 - **Copilot Docs:** https://docs.github.com/en/copilot
 

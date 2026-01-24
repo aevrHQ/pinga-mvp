@@ -46,13 +46,13 @@ Next.js 14 + MongoDB SaaS platform
 ### 2. **DevFlow Agent CLI** (`apps/agent/`)
 Self-hosted npm package for local task execution
 
-**Distributed via:** `npm install -g devflow-agent`
+**Distributed via:** `npm install -g devflow`
 
 **Commands:**
 ```bash
-devflow-agent init      # Initialize and authenticate
-devflow-agent start     # Start polling for tasks
-devflow-agent status    # Show connection status
+devflow init      # Initialize and authenticate
+devflow start     # Start polling for tasks
+devflow status    # Show connection status
 ```
 
 **Key Features:**
@@ -206,9 +206,9 @@ const session = await client.createSession({ model: "gpt-4.1" });
 
 ### ✅ Local Testing
 - CLI works globally via `npm link`
-- `devflow-agent --version` returns correct version
-- `devflow-agent help` displays all commands
-- CLI can be installed via `npm install -g devflow-agent`
+- `devflow --version` returns correct version
+- `devflow help` displays all commands
+- CLI can be installed via `npm install -g devflow`
 
 ### ✅ API Validation
 - All endpoints have request/response examples
@@ -280,9 +280,9 @@ const session = await client.createSession({ model: "gpt-4.1" });
 
 ### For Users (Simple)
 ```bash
-npm install -g devflow-agent
-devflow-agent init
-devflow-agent start
+npm install -g devflow
+devflow init
+devflow start
 ```
 
 ### For Teams (Docker)
@@ -291,7 +291,7 @@ docker run -d \
   -e DEVFLOW_PLATFORM_URL=https://devflow.dev \
   -e DEVFLOW_AGENT_ID=team-agent-1 \
   -v ~/.devflow:/root/.devflow \
-  devflow-agent:latest
+  devflow:latest
 ```
 
 ### For Enterprise (Production)
@@ -351,14 +351,14 @@ docker run -d \
 
 ```bash
 # 1. Install
-npm install -g devflow-agent
+npm install -g devflow
 
 # 2. Initialize
-devflow-agent init
+devflow init
 # Authenticate in browser
 
 # 3. Start
-devflow-agent start
+devflow start
 # Agent connects to platform
 
 # 4. Create task
@@ -425,10 +425,10 @@ npm run dev --workspace=apps/agent -- cli start
 
 ## Support & Contact
 
-- **Repository:** https://github.com/devflow/devflow-agent
+- **Repository:** https://github.com/devflow/devflow
 - **Documentation:** https://devflow.dev/docs
-- **Issues:** https://github.com/devflow/devflow-agent/issues
-- **Discussions:** https://github.com/devflow/devflow-agent/discussions
+- **Issues:** https://github.com/devflow/devflow/issues
+- **Discussions:** https://github.com/devflow/devflow/discussions
 - **Email:** support@devflow.dev
 - **Twitter:** @devflow_ai
 

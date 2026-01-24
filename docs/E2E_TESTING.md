@@ -38,7 +38,7 @@ npm run cli -- start
 
 ```bash
 # Test agent init command
-devflow-agent init
+devflow init
 
 # Expected flow:
 # 1. CLI prompts for platform URL (default: http://localhost:3000)
@@ -65,7 +65,7 @@ cat ~/.devflow/config.json
 
 ```bash
 # Start agent in one terminal
-devflow-agent start
+devflow start
 # Expected: "⏳ Waiting for tasks..."
 
 # In another terminal, create a task via API
@@ -116,8 +116,8 @@ pending → in_progress → completed
 1. **Invalid Config**
    ```bash
    rm ~/.devflow/config.json
-   devflow-agent start
-   # Expected: "Error: Configuration not found. Run 'devflow-agent init' first"
+   devflow start
+   # Expected: "Error: Configuration not found. Run 'devflow init' first"
    ```
 
 2. **Network Error**
@@ -131,9 +131,9 @@ pending → in_progress → completed
 3. **Expired Token**
    ```bash
    # Manually edit ~/.devflow/config.json and change api_key
-   devflow-agent start
+   devflow start
    # Expected: "Error: Invalid token (401)"
-   # Solution: Run 'devflow-agent init' to re-authenticate
+   # Solution: Run 'devflow init' to re-authenticate
    ```
 
 4. **Agent-Host Unavailable**
@@ -362,9 +362,9 @@ done
 
 ```bash
 # Start 3 agents
-devflow-agent init --agent-name agent-1
-devflow-agent init --agent-name agent-2
-devflow-agent init --agent-name agent-3
+devflow init --agent-name agent-1
+devflow init --agent-name agent-2
+devflow init --agent-name agent-3
 
 # Queue 30 tasks
 # Expected: Load distributed across agents
@@ -395,7 +395,7 @@ devflow-agent init --agent-name agent-3
 ### Enable verbose logging
 
 ```bash
-DEVFLOW_LOG_LEVEL=debug devflow-agent start
+DEVFLOW_LOG_LEVEL=debug devflow start
 ```
 
 ### Check config validity
@@ -409,7 +409,7 @@ cat ~/.devflow/config.json | jq .
 
 ```bash
 # Terminal 1: Enable request logging
-DEBUG=* devflow-agent start
+DEBUG=* devflow start
 
 # Terminal 2: Watch HTTP traffic
 tcpdump -i lo0 -A 'tcp port 3000 or tcp port 3001'

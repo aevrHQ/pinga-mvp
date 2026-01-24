@@ -23,10 +23,10 @@
 
 ### 2. DevFlow Agent CLI ✅
 - **Location:** `apps/agent/`
-- **Package:** `devflow-agent` (npm)
+- **Package:** `devflow` (npm)
 - **Version:** 0.2.0
 - **Build Status:** ✅ Compiles successfully
-- **Installation:** `npm install -g devflow-agent`
+- **Installation:** `npm install -g devflow`
 - **Features:**
   - 3 CLI commands (init, start, status)
   - Task polling every 5 seconds
@@ -123,7 +123,7 @@
 - `src/cli.ts` - Main CLI with all commands (8,100 LOC)
 - `src/config.ts` - Configuration management
 - `src/agent/client.ts` - Platform API client
-- `bin/devflow-agent.js` - npm bin entry point
+- `bin/devflow.js` - npm bin entry point
 - `src/index.ts` - Module exports
 
 **Build Files**
@@ -231,7 +231,7 @@
 
 ### Local Testing ✅
 - CLI installed globally via `npm link`
-- Commands work: `devflow-agent --version`, `devflow-agent help`
+- Commands work: `devflow --version`, `devflow help`
 - Package.json configured correctly for npm
 
 ### Documentation Testing ✅
@@ -253,7 +253,7 @@
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
 | Uses GitHub Copilot SDK | ✅ | `apps/agent-host/src/copilot/client.ts` |
-| Is a CLI tool | ✅ | `devflow-agent` npm package with 3 commands |
+| Is a CLI tool | ✅ | `devflow` npm package with 3 commands |
 | Innovative use case | ✅ | Two-tier SaaS + self-hosted architecture |
 | Complete & production-ready | ✅ | All 3 apps build, docs complete, tested |
 | Well documented | ✅ | 60,000+ words across 7 guides |
@@ -265,21 +265,21 @@
 ## 📦 Package Distribution
 
 ### npm Package Metadata
-- **Name:** `devflow-agent`
+- **Name:** `devflow`
 - **Version:** 0.2.0
 - **License:** MIT
-- **Repository:** github.com/devflow/devflow-agent
+- **Repository:** github.com/devflow/devflow
 - **Keywords:** devflow, copilot, ai, devops, github, cli-agent
 - **Engines:** Node.js >= 18.0.0
-- **Bin:** `devflow-agent` → `./bin/devflow-agent.js`
+- **Bin:** `devflow` → `./bin/devflow.js`
 
 ### Installation Methods
 ```bash
 # Global installation
-npm install -g devflow-agent
+npm install -g devflow
 
 # Local installation
-npm install devflow-agent
+npm install devflow
 
 # Development from source
 git clone <repo>
@@ -294,9 +294,9 @@ npm link
 
 ### Getting Started
 1. Read: `docs/GETTING_STARTED.md` (8,571 words)
-2. Install: `npm install -g devflow-agent`
-3. Initialize: `devflow-agent init`
-4. Start: `devflow-agent start`
+2. Install: `npm install -g devflow`
+3. Initialize: `devflow init`
+4. Start: `devflow start`
 
 ### For Developers
 1. Clone repository

@@ -4,22 +4,22 @@ Complete guide to set up and run DevFlow for the first time.
 
 ## 5-Minute Quick Start
 
-### Step 1: Install devflow-agent
+### Step 1: Install devflow
 
 ```bash
-npm install -g devflow-agent
+npm install -g devflow
 ```
 
 Verify installation:
 ```bash
-devflow-agent --version
-# Output: devflow-agent 0.2.0
+devflow --version
+# Output: devflow 0.2.0
 ```
 
 ### Step 2: Initialize Agent
 
 ```bash
-devflow-agent init
+devflow init
 ```
 
 Follow the prompts:
@@ -36,7 +36,7 @@ This will:
 ### Step 3: Start the Agent
 
 ```bash
-devflow-agent start
+devflow start
 ```
 
 You should see:
@@ -70,27 +70,27 @@ Watch the agent terminal for execution progress!
 ### Global Installation (Recommended)
 
 ```bash
-npm install -g devflow-agent
+npm install -g devflow
 
 # Now available system-wide
-devflow-agent help
+devflow help
 ```
 
 ### Local Installation
 
 ```bash
 cd my-project
-npm install devflow-agent
+npm install devflow
 
 # Run via npx
-npx devflow-agent help
+npx devflow help
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/devflow/devflow-agent.git
-cd devflow-agent
+git clone https://github.com/devflow/devflow.git
+cd devflow
 npm install
 npm run build
 npm link
@@ -168,7 +168,7 @@ export DEVFLOW_AGENT_TOKEN="your-jwt-token"
 export DEVFLOW_AGENT_ID="agent-uuid"
 export DEVFLOW_LOG_LEVEL="debug"
 
-devflow-agent start
+devflow start
 ```
 
 ---
@@ -297,7 +297,7 @@ Save the returned token for authentication.
 
 **Solution:**
 ```bash
-devflow-agent init
+devflow init
 # Re-initialize with fresh credentials
 ```
 
@@ -317,7 +317,7 @@ curl http://localhost:3000/health
 **Solution:** 
 1. Check agent is registered:
    ```bash
-   devflow-agent status
+   devflow status
    ```
 
 2. Verify task was created:
@@ -337,7 +337,7 @@ curl http://localhost:3000/health
 **Solution:**
 Token expired (valid for 30 days). Re-authenticate:
 ```bash
-devflow-agent init
+devflow init
 ```
 
 **Problem:** `Error: Agent not found`
@@ -369,7 +369,7 @@ curl https://devflow.dev/health
 1. Reduce polling frequency:
    ```bash
    export DEVFLOW_POLL_INTERVAL=10000
-   devflow-agent start
+   devflow start
    ```
 
 2. Limit concurrent tasks:
@@ -443,8 +443,8 @@ curl https://devflow.dev/health
 
 ### Community
 
-- [GitHub Discussions](https://github.com/devflow/devflow-agent/discussions)
-- [Issue Tracker](https://github.com/devflow/devflow-agent/issues)
+- [GitHub Discussions](https://github.com/devflow/devflow/discussions)
+- [Issue Tracker](https://github.com/devflow/devflow/issues)
 - [Slack Community](https://devflow-community.slack.com)
 
 ### Support Channels
