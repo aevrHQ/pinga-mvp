@@ -3,18 +3,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy root package files
+# Copy package files (when root dir is apps/agent-host)
 COPY package*.json ./
-COPY tsconfig.json ./
-
-# Copy agent-host app
-COPY apps/agent-host ./apps/agent-host
 
 # Install dependencies
 RUN npm ci
 
 # Build TypeScript
-RUN cd apps/agent-host && npm run build
+RUN npm run build
 
 # Production stage
 FROM node:20-alpine
@@ -24,22 +20,17 @@ WORKDIR /app
 # Install dumb-init to handle signals properly
 RUN apk add --no-cache dumb-init
 
-# Copy root package files
+# Copy package files
 COPY package*.json ./
-COPY apps/agent-host/package*.json ./apps/agent-host/
 
 # Install production dependencies only
-RUN npm ci --only=production && \
-    npm ci --prefix apps/agent-host --only=production
+RUN npm ci --only=production
 
 # Copy built code from builder
-COPY --from=builder /app/apps/agent-host/dist ./apps/agent-host/dist
+COPY --from=builder /app/dist ./dist
 
 # Copy environment template (for reference)
-COPY apps/agent-host/.env.example ./apps/agent-host/
-
-# Set working directory
-WORKDIR /app/apps/agent-host
+COPY .env.example ./
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
