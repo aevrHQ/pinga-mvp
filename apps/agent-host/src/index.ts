@@ -185,10 +185,19 @@ async function handleCommand(command: CommandRequest): Promise<void> {
   console.log(`   Repo: ${command.payload.repo}`);
   console.log(`   Description: ${command.payload.naturalLanguage}`);
 
+  // Log deployment mode
+  if (command.credentials?.github) {
+    console.log(`   Mode: Managed SaaS (using provided credentials)`);
+  } else {
+    console.log(
+      `   Mode: Self-hosted (using GITHUB_TOKEN environment variable)`
+    );
+  }
+
   jobQueue.updateJobStatus(command.taskId, "processing");
 
   try {
-    // Build workflow context
+    // Build workflow context with optional user credentials
     const context: WorkflowContext = {
       taskId: command.taskId,
       intent: command.payload.intent,
@@ -197,6 +206,7 @@ async function handleCommand(command: CommandRequest): Promise<void> {
       naturalLanguage: command.payload.naturalLanguage,
       context: command.payload.context,
       source: command.source,
+      credentials: command.credentials,
     };
 
     // Execute the workflow

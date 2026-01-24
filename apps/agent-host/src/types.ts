@@ -15,6 +15,10 @@ export interface CommandRequest {
     messageId: string;
   };
   payload: TaskPayload;
+  // User credentials (encrypted, optional - for managed SaaS mode)
+  credentials?: {
+    github?: string; // Encrypted GitHub token
+  };
 }
 
 export interface CommandResponse {

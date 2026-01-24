@@ -10,6 +10,10 @@ export interface ITaskAssignment {
   currentStep: string;
   startedAt: Date;
   completedAt?: Date;
+  // User credentials (encrypted for managed SaaS mode)
+  credentials?: {
+    github?: string; // Encrypted GitHub PAT/OAuth token
+  };
   result?: {
     success: boolean;
     output?: string;
@@ -37,6 +41,10 @@ const TaskAssignmentSchema = new Schema<TaskAssignmentDocument>(
     currentStep: { type: String, default: "queued" },
     startedAt: { type: Date },
     completedAt: { type: Date },
+    // Encrypted credentials for managed SaaS mode
+    credentials: {
+      github: { type: String },
+    },
     result: {
       success: { type: Boolean },
       output: { type: String },

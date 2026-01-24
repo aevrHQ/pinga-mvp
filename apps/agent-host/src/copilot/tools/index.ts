@@ -41,14 +41,15 @@ export type { ProgressUpdateInput, ProgressUpdateResult } from "./progress.js";
 export { ToolError, executeCommand, ensureRepoStoragePath, getRepoPath };
 
 // Convenience function to get all tools at once
-export function getAllTools(): any[] {
+// Optional: pass user's GitHub token for managed SaaS mode
+export function getAllTools(userGitHubToken?: string, encryptionKey?: string): any[] {
   return [
     createGitOperationsTool(),
     createTestRunnerTool(),
     createReadFileTool(),
     createWriteFileTool(),
     createListFilesTool(),
-    createOpenPullRequestTool(),
+    createOpenPullRequestTool(userGitHubToken, encryptionKey),
     createProgressUpdateTool(),
   ];
 }

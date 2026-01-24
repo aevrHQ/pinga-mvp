@@ -193,10 +193,31 @@ export class GitHubPRManager {
 }
 
 // Factory function for Copilot SDK tool definition
-export function createOpenPullRequestTool(): any {
-  const token = process.env.GITHUB_TOKEN;
+export function createOpenPullRequestTool(
+  userToken?: string,
+  encryptionKey?: string
+): any {
+  // Support both managed SaaS (user token provided) and self-hosted (env var)
+  let token = userToken;
+
   if (!token) {
-    throw new ToolError("GITHUB_TOKEN environment variable not set", "github");
+    token = process.env.GITHUB_TOKEN;
+    if (token) {
+      console.log(
+        "[GitHub Tool] Using GITHUB_TOKEN from environment (self-hosted mode)"
+      );
+    }
+  } else {
+    console.log("[GitHub Tool] Using provided user token (managed SaaS mode)");
+  }
+
+  if (!token) {
+    throw new ToolError(
+      "GITHUB_TOKEN environment variable not set and no user credentials provided. " +
+        "For managed SaaS: ensure user GitHub token is configured. " +
+        "For self-hosted: set GITHUB_TOKEN environment variable.",
+      "github"
+    );
   }
 
   const prManager = new GitHubPRManager(token);

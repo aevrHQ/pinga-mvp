@@ -16,6 +16,10 @@ export interface WorkflowContext {
     chatId: string;
     messageId: string;
   };
+  // User credentials (encrypted, optional - for managed SaaS mode)
+  credentials?: {
+    github?: string; // Encrypted GitHub token
+  };
 }
 
 export interface WorkflowResult {
@@ -98,12 +102,28 @@ IMPORTANT:
 Begin by understanding the repository structure.`;
   }
 
-  protected async setupSession(): Promise<Session> {
+  protected async setupSession(context: WorkflowContext): Promise<Session> {
     try {
+      // Decrypt user credentials if provided (managed SaaS mode)
+      let userGitHubToken: string | undefined;
+      if (context.credentials?.github) {
+        try {
+          const { decryptCredentials } = await import("../../credentials.js");
+          const decrypted = decryptCredentials(context.credentials);
+          userGitHubToken = decrypted.github;
+          console.log("[Workflow] Using decrypted user credentials (managed SaaS)");
+        } catch (error) {
+          console.warn(
+            "[Workflow] Failed to decrypt credentials, falling back to env var:",
+            error instanceof Error ? error.message : error
+          );
+        }
+      }
+
       return await this.copilot.createSession({
         model: process.env.COPILOT_MODEL || "gpt-4.1",
         streaming: true,
-        tools: getAllTools(),
+        tools: getAllTools(userGitHubToken),
         mcpServers: process.env.COPILOT_ENABLE_MCP === "true" ? {
           github: {
             type: "http",
@@ -121,7 +141,7 @@ Begin by understanding the repository structure.`;
     context: WorkflowContext
   ): Promise<WorkflowResult> {
     try {
-      const session = await this.setupSession();
+      const session = await this.setupSession(context);
 
       let output = "";
       let hasError = false;
