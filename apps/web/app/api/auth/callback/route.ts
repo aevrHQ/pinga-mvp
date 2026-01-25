@@ -22,9 +22,12 @@ export async function GET(request: NextRequest) {
     let cliState = null;
     try {
       if (state) {
+        console.log('[GET] Received state:', state.substring(0, 100) + '...');
         cliState = JSON.parse(state);
+        console.log('[GET] Parsed cliState:', cliState);
       }
     } catch (e) {
+      console.log('[GET] State is not JSON (web auth):', e);
       // Not valid JSON, might be plain state
     }
 
@@ -57,13 +60,16 @@ export async function GET(request: NextRequest) {
     }
 
     // If this is a CLI agent auth, redirect to the CLI's redirect_uri with the code
-    if (cliState?.original_redirect_uri) {
+    if (cliState?.original_redirect_uri && cliState?.original_state) {
+      console.log('[GET] CLI auth detected, redirecting to CLI with original state');
       const redirectUrl = new URL(cliState.original_redirect_uri);
       redirectUrl.searchParams.set('code', code);
-      redirectUrl.searchParams.set('state', cliState.original_state || '');
+      redirectUrl.searchParams.set('state', cliState.original_state);
+      console.log('[GET] Redirecting to:', redirectUrl.toString());
       return NextResponse.redirect(redirectUrl.toString());
     }
 
+    console.log('[GET] Web auth path (cliState:', cliState, ')');
     // Otherwise, this is a web auth - store token and redirect to dashboard
     const response = NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`
