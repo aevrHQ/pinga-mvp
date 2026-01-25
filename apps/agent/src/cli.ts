@@ -25,7 +25,10 @@ interface InitOptions {
 async function initCommand(options: InitOptions): Promise<void> {
   console.log("\n🚀 DevFlow Agent Initialization\n");
 
-  const platformUrl = options.platformUrl || process.env.PLATFORM_URL || "https://devflow.example.com";
+  const platformUrl =
+    options.platformUrl ||
+    process.env.PLATFORM_URL ||
+    "https://devflow-web.vercel.app";
 
   console.log("📍 Platform URL:", platformUrl);
   console.log("⏳ Starting authentication flow...\n");
@@ -35,7 +38,8 @@ async function initCommand(options: InitOptions): Promise<void> {
     const token = await initiateOAuthFlow({
       platformUrl,
       clientId: process.env.GITHUB_CLIENT_ID || "devflow-agent-cli",
-      redirectUri: process.env.OAUTH_REDIRECT_URI || "http://localhost:3333/callback",
+      redirectUri:
+        process.env.OAUTH_REDIRECT_URI || "http://localhost:3333/callback",
     });
 
     console.log("✓ Authentication successful!");
@@ -51,7 +55,7 @@ async function initCommand(options: InitOptions): Promise<void> {
       platformUrl,
       token.access_token,
       agentId,
-      agentName
+      agentName,
     );
 
     const validation = validateConfig(config);
@@ -72,7 +76,7 @@ async function initCommand(options: InitOptions): Promise<void> {
     console.log(`   devflow start\n`);
   } catch (error) {
     console.error(
-      `\n❌ Initialization failed: ${error instanceof Error ? error.message : String(error)}`
+      `\n❌ Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     process.exit(1);
   }
@@ -112,7 +116,7 @@ async function startCommand(options: StartOptions): Promise<void> {
   const client = new PlatformClient(
     config.platform.url,
     config.agent.id,
-    config.platform.api_key
+    config.platform.api_key,
   );
 
   // Graceful shutdown
@@ -130,15 +134,23 @@ async function startCommand(options: StartOptions): Promise<void> {
     console.log(`✓ Agent registered: ${config.agent.id}`);
     console.log(`✓ Listening for commands...\n`);
   } catch (error) {
-    console.error(`❌ Registration failed: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      `❌ Registration failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     process.exit(1);
   }
 
   // Main polling loop
   let lastHeartbeat = 0;
-  const pollInterval = parseInt(process.env.POLL_INTERVAL_MS || String(options.pollInterval), 10);
-  const heartbeatInterval = parseInt(process.env.HEARTBEAT_INTERVAL_MS || "30000", 10);
-  
+  const pollInterval = parseInt(
+    process.env.POLL_INTERVAL_MS || String(options.pollInterval),
+    10,
+  );
+  const heartbeatInterval = parseInt(
+    process.env.HEARTBEAT_INTERVAL_MS || "30000",
+    10,
+  );
+
   while (running) {
     try {
       // Heartbeat at configured interval
@@ -170,22 +182,26 @@ async function startCommand(options: StartOptions): Promise<void> {
           (async () => {
             try {
               // Get agent-host URL from environment
-              const agentHostUrl = process.env.AGENT_HOST_URL || "http://localhost:3001";
+              const agentHostUrl =
+                process.env.AGENT_HOST_URL || "http://localhost:3001";
 
               // Call agent-host to execute the workflow
-              const response = await fetch(`${agentHostUrl}/api/workflows/execute`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
+              const response = await fetch(
+                `${agentHostUrl}/api/workflows/execute`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    taskId: cmd.task_id,
+                    intent: cmd.intent,
+                    repo: cmd.repo,
+                    branch: cmd.branch,
+                    naturalLanguage: cmd.description,
+                  }),
                 },
-                body: JSON.stringify({
-                  taskId: cmd.task_id,
-                  intent: cmd.intent,
-                  repo: cmd.repo,
-                  branch: cmd.branch,
-                  naturalLanguage: cmd.description,
-                }),
-              });
+              );
 
               if (!response.ok) {
                 throw new Error(`Agent-host error: ${response.statusText}`);
@@ -207,13 +223,13 @@ async function startCommand(options: StartOptions): Promise<void> {
       }
 
       // Wait before next poll
-      await new Promise((resolve) =>
-        setTimeout(resolve, options.pollInterval)
-      );
+      await new Promise((resolve) => setTimeout(resolve, options.pollInterval));
     } catch (error) {
-      console.error(`⚠ Poll error: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `⚠ Poll error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       await new Promise((resolve) =>
-        setTimeout(resolve, options.pollInterval * 2)
+        setTimeout(resolve, options.pollInterval * 2),
       );
     }
   }
@@ -237,13 +253,13 @@ export async function runCLI(): Promise<void> {
             alias: "p",
             describe: "Platform URL",
             type: "string",
-            default: "https://devflow.example.com",
+            default: "https://devflow-web.vercel.app",
           }),
       (argv: any) =>
         initCommand({
           name: argv.name,
           platformUrl: argv["platform-url"],
-        })
+        }),
     )
     .command(
       "start",
@@ -266,24 +282,20 @@ export async function runCLI(): Promise<void> {
         startCommand({
           pollInterval: argv["poll-interval"],
           debug: argv.debug,
-        })
+        }),
     )
-    .command(
-      "status",
-      "Show agent status",
-      async () => {
-        const config = loadConfig();
-        if (!config) {
-          console.log("❌ No agent configured. Run 'devflow init' first.");
-          process.exit(1);
-        }
-        console.log("\n✓ DevFlow Agent Status\n");
-        console.log(`  Agent: ${config.agent.name}`);
-        console.log(`  ID: ${config.agent.id}`);
-        console.log(`  Platform: ${config.platform.url}`);
-        console.log(`  Config: ~/.devflow/config.json\n`);
+    .command("status", "Show agent status", async () => {
+      const config = loadConfig();
+      if (!config) {
+        console.log("❌ No agent configured. Run 'devflow init' first.");
+        process.exit(1);
       }
-    )
+      console.log("\n✓ DevFlow Agent Status\n");
+      console.log(`  Agent: ${config.agent.name}`);
+      console.log(`  ID: ${config.agent.id}`);
+      console.log(`  Platform: ${config.platform.url}`);
+      console.log(`  Config: ~/.devflow/config.json\n`);
+    })
     .option("version", {
       alias: "v",
       describe: "Show version",
@@ -301,7 +313,7 @@ Examples:
   devflow start
   devflow status
   devflow start --debug
-`
+`,
     )
     .demandCommand(1, "Please specify a command")
     .strict()

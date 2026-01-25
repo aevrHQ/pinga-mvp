@@ -3,7 +3,8 @@
 ## Overview
 
 Convert current architecture into a production-ready SaaS platform where:
-- Devflow Platform (web app) = `apps/web` 
+
+- Devflow Platform (web app) = `apps/web`
 - Devflow Agent (CLI tool) = `apps/agent` (new)
 
 Users: `npm install -g devflow-agent` → `devflow-agent init` → `devflow-agent start`
@@ -19,13 +20,11 @@ Users: `npm install -g devflow-agent` → `devflow-agent init` → `devflow-agen
   - [ ] Generate and save DEVFLOW_AUTH_TOKEN
   - [ ] Save config to ~/.devflow/config.json
   - [ ] Verify platform connectivity
-  
 - [ ] Implement `devflow-agent start` command
   - [ ] Load token from ~/.devflow/config.json
   - [ ] Register agent with platform
   - [ ] Start polling loop for commands
   - [ ] Handle graceful shutdown
-  
 - [ ] Configuration management
   - [ ] ~/.devflow/ directory creation
   - [ ] Encrypted token storage
@@ -37,17 +36,13 @@ Users: `npm install -g devflow-agent` → `devflow-agent init` → `devflow-agen
 - [ ] POST /api/agents/register
   - Body: { agent_id, version, platform, capabilities }
   - Response: { registered_at, next_poll_in }
-  
 - [ ] GET /api/agents/{agent_id}/commands
   - Response: { commands: [{ task_id, intent, repo, ... }] }
   - Pagination support
-  
 - [ ] POST /api/agents/{agent_id}/heartbeat
   - Keep-alive and health check
-  
 - [ ] POST /api/tasks/{task_id}/progress
   - Status, step, progress, details
-  
 - [ ] POST /api/tasks/{task_id}/complete
   - success, pr_url, error_message
 
@@ -153,7 +148,7 @@ apps/agent/
 {
   "version": "1.0",
   "platform": {
-    "url": "https://devflow.example.com",
+    "url": "https://devflow-web.vercel.app",
     "api_key": "devflow_sk_live_xxxxx"
   },
   "agent": {
@@ -236,7 +231,7 @@ $ npm install -g devflow-agent
 $ devflow-agent init
 
 ✓ Welcome to DevFlow Agent!
-✓ Opening browser to https://devflow.example.com/auth/agent
+✓ Opening browser to https://devflow-web.vercel.app/auth/agent
 
 [Browser opens, user logs in]
 
@@ -248,7 +243,7 @@ $ devflow-agent init
 $ devflow-agent start
 
 ✓ DevFlow Agent v0.1.0 starting...
-✓ Platform: https://devflow.example.com
+✓ Platform: https://devflow-web.vercel.app
 ✓ Agent ID: agent_abc123
 ✓ Polling for commands every 5s...
 ✓ Press Ctrl+C to stop

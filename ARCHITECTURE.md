@@ -3,6 +3,7 @@
 ## Current Problem
 
 The current architecture requires:
+
 - Users download the full GitHub repo
 - Users set up Node.js, npm, environment variables
 - Users run both Pinga and Agent Host locally
@@ -61,6 +62,7 @@ The current architecture requires:
 **Current Location:** `apps/web` (Pinga)
 
 **Should:**
+
 - ✅ Web dashboard for user accounts
 - ✅ OAuth connections to GitHub/Slack/Telegram
 - ✅ API endpoints for agent communication
@@ -78,6 +80,7 @@ The current architecture requires:
 **Should be delivered as:**
 
 #### Option A: npm CLI Package
+
 ```bash
 npm install -g devflow-agent
 devflow-agent init  # Authenticate with platform
@@ -85,6 +88,7 @@ devflow-agent start # Keep running and polling
 ```
 
 #### Option B: Docker Container
+
 ```bash
 docker run -e DEVFLOW_AUTH_TOKEN=xxx \
            -v ~/.ssh:/root/.ssh \
@@ -93,12 +97,14 @@ docker run -e DEVFLOW_AUTH_TOKEN=xxx \
 ```
 
 #### Option C: Binary Executable
+
 ```bash
 ./devflow-agent-macos-x64 init
 ./devflow-agent-macos-x64 start
 ```
 
 #### Option D: Node.js Service
+
 ```bash
 npm install devflow-agent
 npx devflow-agent init
@@ -108,6 +114,7 @@ npx devflow-agent start
 ## User Journey
 
 ### Step 1: Sign Up
+
 ```
 User visits devflow.yourcompany.com
 → Creates account (email or OAuth)
@@ -115,6 +122,7 @@ User visits devflow.yourcompany.com
 ```
 
 ### Step 2: Connect Services
+
 ```
 Dashboard → Settings → Connected Services
 ├─ GitHub (OAuth) - for repo access
@@ -123,6 +131,7 @@ Dashboard → Settings → Connected Services
 ```
 
 ### Step 3: Install Agent
+
 ```
 User on their machine:
   1. npm install -g devflow-agent
@@ -138,6 +147,7 @@ User on their machine:
 ```
 
 ### Step 4: Use Devflow
+
 ```
 In Slack/Telegram:
   @devflow fix owner/repo Fix the bug
@@ -179,7 +189,8 @@ Agent ←→ Platform
 ### 1. Agent Authentication
 
 Current: No authentication  
-Needed: 
+Needed:
+
 - DEVFLOW_AUTH_TOKEN from platform
 - JWT-based communication
 - Agent registration/pairing
@@ -188,6 +199,7 @@ Needed:
 
 Current: .env.local hardcoded  
 Needed:
+
 - Interactive `devflow-agent init`
 - Browser-based OAuth flow
 - ~/.devflow/config.json for storage
@@ -197,6 +209,7 @@ Needed:
 
 Current: Source code in GitHub  
 Needed:
+
 - npm package: `devflow-agent`
 - Docker image: `ghcr.io/devflow/agent`
 - Binary executables for macOS/Linux/Windows
@@ -206,6 +219,7 @@ Needed:
 
 Current: Expects agent at localhost:3001  
 Needed:
+
 - Agent registration endpoint
 - Command queue (Redis or database)
 - Multiple agents per user
@@ -215,24 +229,28 @@ Needed:
 ## Implementation Roadmap
 
 ### Phase 5A: Agent CLI Setup
+
 - [ ] Create `devflow-agent init` command
 - [ ] Browser OAuth flow for authentication
 - [ ] Secure token storage in ~/.devflow/config.json
 - [ ] Agent registration with platform
 
 ### Phase 5B: Agent Distribution
+
 - [ ] Package as npm global: `npm install -g devflow-agent`
 - [ ] Create Dockerfile
 - [ ] Cross-platform builds (macOS, Linux, Windows)
 - [ ] Publish to npm registry
 
 ### Phase 5C: Platform Integration
+
 - [ ] Agent registration endpoint
 - [ ] Command queue infrastructure
 - [ ] Agent health monitoring
 - [ ] Multiple agent management
 
 ### Phase 5D: Production Deployment
+
 - [ ] Deploy platform to production server
 - [ ] Set up agent distribution pipeline
 - [ ] Documentation for users
@@ -242,8 +260,8 @@ Needed:
 
 ```
 1. User hears about Devflow
-   → Visits devflow.example.com
-   
+   → Visits devflow-web.vercel.app
+
 2. Signs up with GitHub
    → OAuth flow
    → Account created
@@ -256,11 +274,11 @@ Needed:
 4. Installs agent locally
    $ npm install -g devflow-agent
    $ devflow-agent init
-   ✓ Opens browser to devflow.example.com
+   ✓ Opens browser to devflow-web.vercel.app
    ✓ User logs in
    ✓ Token generated
    ✓ Saved to ~/.devflow/config.json
-   
+
 5. Starts agent
    $ devflow-agent start
    ✓ Registers with platform
@@ -285,7 +303,7 @@ Instead of `.env.local` in project directory:
 ~/.devflow/config.json
 {
   "version": "1",
-  "platform_url": "https://devflow.example.com",
+  "platform_url": "https://devflow-web.vercel.app",
   "agent_id": "agent_abc123def456",
   "auth_token": "devflow_sk_live_abc123...",
   "log_level": "info",
@@ -297,17 +315,20 @@ Instead of `.env.local` in project directory:
 ## Security Model
 
 ### Agent ↔ Platform
+
 - JWT token authentication
 - HTTPS only
 - Token rotation capability
 - Revoke per-agent
 
 ### Agent ↔ GitHub
+
 - User provides GitHub PAT (or OAuth)
 - Token stored locally, encrypted
 - User controls which repos agent can access
 
 ### Agent ↔ Slack/Telegram
+
 - Tokens stored on platform
 - Agent never sees user's chat tokens
 - Platform mediates all messages
@@ -315,16 +336,19 @@ Instead of `.env.local` in project directory:
 ## Scaling Considerations
 
 ### Single Agent
+
 - User on laptop
 - Small projects
 - Dev use cases
 
 ### Multiple Agents
+
 - Different machines
 - Different GitHub orgs
 - High availability
 
 ### Team Sharing
+
 - Platform admins create "team" account
 - Multiple users on same team
 - Shared agents or individual agents
@@ -332,6 +356,7 @@ Instead of `.env.local` in project directory:
 ## What You Build vs. Distribute
 
 ### What Users Download
+
 ```
 devflow-agent CLI package
 
@@ -343,6 +368,7 @@ npm install -g devflow-agent
 ```
 
 ### What You Build Internally
+
 ```
 Devflow Platform (web app)
 ├─ User authentication
@@ -364,12 +390,14 @@ Devflow Agent (open source or internal)
 
 **Problem:** Current design is for developers, not end users
 
-**Solution:** 
+**Solution:**
+
 1. Keep Pinga as "Devflow Platform" (web app)
 2. Convert Agent Host to "devflow-agent" (CLI tool)
 3. Users sign up → install agent → use DevFlow
 
 **Key Changes:**
+
 - Authentication via platform tokens
 - Agent registration and discovery
 - Command queue instead of direct HTTP

@@ -90,15 +90,15 @@ npm run dev
 
 ### Platform & Server Configuration
 
-| Variable                | Type   | Default                       | Description                               |
-| ----------------------- | ------ | ----------------------------- | ----------------------------------------- |
-| `PLATFORM_URL`          | string | `https://devflow.example.com` | DevFlow SaaS platform URL                 |
-| `NEXT_PUBLIC_BASE_URL`  | string | `http://localhost:3000`       | Web app base URL (public)                 |
-| `NEXT_PUBLIC_PINGA_URL` | string | `http://localhost:3000`       | Platform base URL (public)                |
-| `AGENT_HOST_URL`        | string | `http://localhost:3001`       | Agent-host server URL                     |
-| `PINGA_API_URL`         | string | `http://localhost:3000`       | Platform API URL (internal)               |
-| `PORT`                  | number | `3001`                        | Server port                               |
-| `NODE_ENV`              | string | `development`                 | `development`, `staging`, or `production` |
+| Variable                | Type   | Default                          | Description                               |
+| ----------------------- | ------ | -------------------------------- | ----------------------------------------- |
+| `PLATFORM_URL`          | string | `https://devflow-web.vercel.app` | DevFlow SaaS platform URL                 |
+| `NEXT_PUBLIC_BASE_URL`  | string | `http://localhost:3000`          | Web app base URL (public)                 |
+| `NEXT_PUBLIC_PINGA_URL` | string | `http://localhost:3000`          | Platform base URL (public)                |
+| `AGENT_HOST_URL`        | string | `http://localhost:3001`          | Agent-host server URL                     |
+| `PINGA_API_URL`         | string | `http://localhost:3000`          | Platform API URL (internal)               |
+| `PORT`                  | number | `3001`                           | Server port                               |
+| `NODE_ENV`              | string | `development`                    | `development`, `staging`, or `production` |
 
 ### Authentication & Security
 
