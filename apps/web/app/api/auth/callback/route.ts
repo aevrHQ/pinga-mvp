@@ -1,8 +1,10 @@
 // GitHub OAuth Callback Handler
-// Handles redirect from GitHub and exchanges code for token
-// Supports both CLI agent auth and web user auth
+// Handles both:
+// 1. GET redirect from GitHub (after user authorizes)
+// 2. POST from CLI agent to exchange code for token
 
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
@@ -79,7 +81,74 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('[Auth Callback] Error:', error);
+    console.error('[Auth Callback GET] Error:', error);
+    return NextResponse.json(
+      {
+        error: 'Authentication failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// POST handler for CLI agent - exchanges code for token
+export async function POST(request: NextRequest) {
+  try {
+    const { code, client_id, redirect_uri } = await request.json();
+
+    if (!code) {
+      return NextResponse.json(
+        { error: 'Missing authorization code' },
+        { status: 400 }
+      );
+    }
+
+    console.log('[Auth Callback POST] Exchanging code for CLI agent');
+
+    // Exchange GitHub code for access token
+    const tokenResponse = await fetch(
+      'https://github.com/login/oauth/access_token',
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code,
+          redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/callback`,
+        }),
+      }
+    );
+
+    const data = await tokenResponse.json();
+    const accessToken = data.access_token;
+
+    if (!accessToken) {
+      console.error('[Auth Callback POST] Failed to get access token:', data);
+      return NextResponse.json(
+        { error: data.error_description || 'Failed to get access token' },
+        { status: 401 }
+      );
+    }
+
+    // Generate a unique agent ID
+    const agentId = `agent-${randomUUID()}`;
+
+    console.log('[Auth Callback POST] Generated agent ID:', agentId);
+
+    // Return token to CLI agent
+    return NextResponse.json({
+      access_token: accessToken,
+      token_type: 'bearer',
+      expires_in: 3600,
+      agent_id: agentId,
+    });
+  } catch (error) {
+    console.error('[Auth Callback POST] Error:', error);
     return NextResponse.json(
       {
         error: 'Authentication failed',
