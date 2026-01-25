@@ -2,7 +2,6 @@
 // Handles redirect from GitHub and exchanges code for token
 
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,26 +26,29 @@ export async function GET(request: NextRequest) {
     }
 
     // Exchange GitHub code for access token
-    const tokenResponse = await axios.post(
+    const tokenResponse = await fetch(
       'https://github.com/login/oauth/access_token',
       {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
-        code,
-        redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/github/callback`,
-      },
-      {
+        method: 'POST',
         headers: {
           Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code,
+          redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/github/callback`,
+        }),
       }
     );
 
-    const accessToken = tokenResponse.data.access_token;
+    const data = await tokenResponse.json();
+    const accessToken = data.access_token;
 
     if (!accessToken) {
       return NextResponse.json(
-        { error: tokenResponse.data.error_description || 'Failed to get access token' },
+        { error: data.error_description || 'Failed to get access token' },
         { status: 401 }
       );
     }

@@ -2,7 +2,6 @@
 // Handles the response from GitHub OAuth and exchanges the code for an access token
 
 import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -17,29 +16,40 @@ export async function POST(request: NextRequest) {
     }
 
     // Exchange GitHub code for access token
-    const tokenResponse = await axios.post(
+    const tokenResponse = await fetch(
       'https://github.com/login/oauth/access_token',
       {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
-        code,
-        redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/github/callback`,
-      },
-      {
+        method: 'POST',
         headers: {
           Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code,
+          redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/github/callback`,
+        }),
       }
     );
 
-    if (tokenResponse.data.error) {
+    const data = await tokenResponse.json();
+
+    if (data.error) {
       return NextResponse.json(
-        { error: tokenResponse.data.error_description },
+        { error: data.error_description },
         { status: 401 }
       );
     }
 
-    const accessToken = tokenResponse.data.access_token;
+    const accessToken = data.access_token;
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: 'Failed to get access token' },
+        { status: 401 }
+      );
+    }
 
     // Generate a unique agent ID
     const agentId = `agent-${randomUUID()}`;
