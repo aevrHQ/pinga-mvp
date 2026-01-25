@@ -19,11 +19,12 @@ const AgentTokenSchema = new Schema<AgentTokenDocument>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Auto-delete expired tokens
-AgentTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// Auto-delete expired tokens
+// AgentTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Already indexed in schema definition
 
 const AgentToken =
   (models.AgentToken as Model<AgentTokenDocument>) ||
